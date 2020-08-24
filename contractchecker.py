@@ -254,6 +254,8 @@ def get_method (url, query_target=None, target_subtree_class=None, query_target_
         debug("HTTP Request failed, Status Code: {status_code}".format(status_code=response.status_code))
         return None
 
+#--------------------------------------------------------------------------------------------------------------------------------------------- 
+
 # Get EPGs or VRFs#
 def get_node_objs(obj,filters=None) ->  dict:
     url=APIC_URL+"/api/node/class/{}.json".format(obj)
@@ -261,14 +263,15 @@ def get_node_objs(obj,filters=None) ->  dict:
     if response != None:
         aux=response.json()["imdata"]
         i=1
-        #while len(aux) < int(response.json()["totalCount"]):
-        while response.json()["imdata"]!=[]:
+        while len(aux) < int(response.json()["totalCount"]):
+        #while response.json()["imdata"]!=[]:
             response = get_method(url, query_target_filter=filters, page=i)
             aux = aux + response.json()["imdata"]
             i = i+1
         return aux
     else:
         return []
+
 #---------------------------------------------------------------------------------------------------------------------------------------------   
 
 # Get Filters IDs
@@ -278,8 +281,8 @@ def get_filterid (filterdn):
     if response != None:
         aux=response.json()["imdata"]
         i=1
-        #while len(aux) < int(response.json()["totalCount"]):
-        while response.json()["imdata"]!=[]:
+        while len(aux) < int(response.json()["totalCount"]):
+        #while response.json()["imdata"]!=[]:
             response = get_method(url, query_target="children", target_subtree_class="vzRsRFltPOwner", page=i)
             aux = aux + response.json()["imdata"]
             i = i+1
@@ -296,8 +299,8 @@ def get_zoningrule (pod_id, node_id, query=None, subtree=None, filters=None):  #
     if response != None:
         aux=response.json()["imdata"]
         i=1
-        #while len(aux) < int(response.json()["totalCount"]):
-        while response.json()["imdata"]!=[]:
+        while len(aux) < int(response.json()["totalCount"]):
+        #while response.json()["imdata"]!=[]:
             response = get_method(url, query_target=query, target_subtree_class=subtree, query_target_filter=filters, page=i)
             aux = aux + response.json()["imdata"]
             i = i+1
@@ -314,8 +317,8 @@ def get_contracts_info(tenant, contract, query=None, subtree=None, filters=None)
     if response != None:
         aux=response.json()["imdata"]
         i=1
-        #while len(aux) < int(response.json()["totalCount"]):
-        while response.json()["imdata"]!=[]:
+        while len(aux) < int(response.json()["totalCount"]):
+        #while response.json()["imdata"]!=[]:
             response = get_method(url, query_target=query, target_subtree_class=subtree, query_target_filter=filters, page=i)
             aux = aux + response.json()["imdata"]
             i = i+1
@@ -332,8 +335,8 @@ def get_subject_info(tenant, contract, subject, query=None, filters=None) ->  di
     if response != None:
         aux=response.json()["imdata"]
         i=1
-        #while len(aux) < int(response.json()["totalCount"]):
-        while response.json()["imdata"]!=[]:
+        while len(aux) < int(response.json()["totalCount"]):
+        #while response.json()["imdata"]!=[]:
             response = get_method(url, query_target="children", target_subtree_class="vzRsSubjFiltAtt", query_target_filter=filters, page=i)
             aux = aux + response.json()["imdata"]
             i = i+1
