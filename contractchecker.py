@@ -210,7 +210,7 @@ def printable(d):
         'id','Source',lenSource,'Destination',lenDest,'Direction',"State","VRF",lenVRF,"Action","Prio",lenPrio,"    Filter-Contract",lenFilter
         ))
     printt("-"*len("{:<4} {:<{}} {:<{}} {:<14} {:<7} {:<{}} {:<15} ({}){:<{}} ({}){:<{}}".format(
-        'id','Source',lenSource,'Destination',lenDest,'Direction',"State","VRF",lenVRF,"Action", "XX","Prio",lenPrio, "","Filter-Contract",lenFilter
+        'id','Source',lenSource,'Destination',lenDest,'Direction',"State","VRF",lenVRF,"Action", "XX","Prio",lenPrio, "default","Filter-Contract",lenFilter
         )))
     for line in table:
         index, iD, sPcTag, dPcTag, direction, operSt, scopeId, action, prio, fltName, fltId = line
