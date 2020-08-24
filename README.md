@@ -33,12 +33,12 @@ pip install -r requirements.txt
 
 ## Usage & examples
 
-For simplicity the script is prepared to read the APIC information from a file in the same directory with the name envs.py
+For simplicity the script is prepared to read the APIC information from a file in the same directory with the name ***envs.py***
 
 ```text
 URL="https://sandboxapicdc.cisco.com"
 USERNAME = "admin"
-PASS = "ciscopsdt"
+PASS = "password"
 ```
 
 In the case that the file doesn't exist or a parameter is absent, the script will ask the parameter in runtime.
