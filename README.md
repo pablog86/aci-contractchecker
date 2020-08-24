@@ -2,7 +2,7 @@
 
 ## Description
 
-This script generates a correlated output from the zoning-rule in the desired leaf switch, it runs locally and using the APIC's APIs. It also has the posibility to filter the tenant/contract construct to validate the correct renderization of the policy on the leaf.
+This script generates a correlated output from the zoning-rule in the desired leaf switch, it runs locally and using the APIC's APIs. It also has the possibility to filter the tenant/contract construct to validate the correct renderization of the policy on the leaf.
 
 The script can log in a file the outputs executed for analysis in the same folder of the script.
 
