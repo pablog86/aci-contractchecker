@@ -1,4 +1,4 @@
-# ACI Contract Checker
+# ACI Contract Checker :white_check_mark:
 
 ## Description
 
@@ -43,14 +43,25 @@ PASS = "ciscopsdt"
 
 In the case that the file doesn't exist or a parameter is absent, the script will ask the parameter in runtime.
 
-### Get all zoning rules in the leaf
+### Get all zoning rules in the leaf 
 
-Get the zoning rules in the desired leaf using the APIC APIs .
+Get the zoning rules in the desired leaf using the APIC APIs.
 
-Example for pod-1 node-102:
+:computer: Example for pod-1 node-102:
 ```text
 python contractchecker.py 1 102
 ```
+
+**The output will be a table with the followin header**
+- id: Rule ID
+- Source: Source EPG
+- Destination: Destination EPG
+- Direction: Direction of the rule
+- State: State of the rule in the switch
+- VRF: Context of the rule
+- Action: Action taken by the rule
+- Prio: Priority of the rule (1 to 22)
+- Filter-Contract: Filter ID / Contract name
 
 #### Output example
 ```text
@@ -125,7 +136,7 @@ id   Source                                             Destination             
 
 Get the tenant/contract information and correlate the information running on the desired leaf using the APIC APIs.
 
-Example for tenant Tenant1 and contract C1 in the pod-1/node-101:
+:computer: Example for tenant Tenant1 and contract C1 in the pod-1/node-101:
 ```text
 python contractchecker.py -t Tenant1 -c C1 1 101
 ```
@@ -156,7 +167,7 @@ id   Source                                Destination                          
 ```
 
 ##### Notes
-In the priority level Prio: lower is better (01) to (22)
+*In the priority level Prio: lower is better (01) to (22)*
 
 ### Script Help
 ```text
@@ -188,9 +199,9 @@ optional arguments:
 --------------------------------------------------------------------------------------------------------------
 ```
 
--l -> Log file in the same folder with the name "debuglog.json"
+(-l) -> Log file in the same folder with the name ***"debuglog.json"***
 
--d 1
+(-d 1)
 ##### Output example
 ```text
 Debug output CODE get_contracts_info -> (url=https://sandboxapicdc.cisco.com/api/node/mo/uni/tn-common/brc-sql.json, query_target=None, target-subtree-class=None, query-target-filter=None, page-size=2000, page=0): 
@@ -219,7 +230,7 @@ totalCount:
 "1"
 ```
 
--d 2
+(-d 2)
 ##### Output example
 ```text
 VRFs: 
@@ -284,4 +295,4 @@ Contracts:
 }
 ```
 
--d 3 -> The json file of every response.
+(-d 3) -> The json file of every response.
