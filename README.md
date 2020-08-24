@@ -31,7 +31,7 @@ Install required modules
 pip install -r requirements.txt
 ```
 
-## Usage examples
+## Usage & examples
 
 For simplicity the script is prepared to read the APIC information from a file in the same directory with the name envs.py
 
@@ -199,7 +199,7 @@ optional arguments:
 --------------------------------------------------------------------------------------------------------------
 ```
 
-(-l) -> Log file in the same folder with the name ***"debuglog.json"***
+(-l) -> Log file in the same folder with the name ***"debuglog.json"*** :open_file_folder:
 
 (-d 1)
 ##### Output example
@@ -295,4 +295,4 @@ Contracts:
 }
 ```
 
-(-d 3) -> The json file of every response.
+(-d 3) -> The json output of every response.
