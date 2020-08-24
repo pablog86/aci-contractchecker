@@ -157,6 +157,9 @@ id   Source                                Destination                          
 4132 tn-mgmt/ap-se-data-ap/epg-se-data-epg tn-mgmt/mgmtp-default/inb-default     uni-dir-ignore enabled tn-mgmt/ctx-inb permit          (09)src_dst_any (default)mgmt:SE-INB 
 ```
 
+##### Notes
+In the priority level Prio: lower is better (01) to (22)
+
 ### Script Help
 ```text
 % python contractchecker.py -h                        
@@ -186,3 +189,102 @@ optional arguments:
 
 --------------------------------------------------------------------------------------------------------------
 ```
+
+-l Log file in the same folder with the name "debuglog.json"
+
+-d 1
+##### Output example
+```text
+Debug output CODE get_contracts_info -> (url=https://sandboxapicdc.cisco.com/api/node/mo/uni/tn-common/brc-sql.json, query_target=None, target-subtree-class=None, query-target-filter=None, page-size=2000, page=0): 
+200
+totalCount: 
+"1"
+Debug output CODE get_contracts_info -> (url=https://sandboxapicdc.cisco.com/api/node/mo/uni/tn-common/brc-sql.json, query_target=children, target-subtree-class=vzRtCons, query-target-filter=None, page-size=2000, page=0): 
+200
+totalCount: 
+"7"
+Debug output CODE get_contracts_info -> (url=https://sandboxapicdc.cisco.com/api/node/mo/uni/tn-common/brc-sql.json, query_target=children, target-subtree-class=vzRtProv, query-target-filter=None, page-size=2000, page=0): 
+200
+totalCount: 
+"6"
+Debug output CODE get_contracts_info -> (url=https://sandboxapicdc.cisco.com/api/node/mo/uni/tn-common/brc-sql.json, query_target=children, target-subtree-class=vzSubj, query-target-filter=None, page-size=2000, page=0): 
+200
+totalCount: 
+"2"
+Debug output CODE get_subject_info -> (url=https://sandboxapicdc.cisco.com/api/node/mo/uni/tn-common/brc-sql/subj-sql-browser.json, query_target=children, target-subtree-class=vzRsSubjFiltAtt, query-target-filter=None, page-size=2000, page=0): 
+200
+totalCount: 
+"1"
+Debug output CODE get_subject_info -> (url=https://sandboxapicdc.cisco.com/api/node/mo/uni/tn-common/brc-sql/subj-sql-server.json, query_target=children, target-subtree-class=vzRsSubjFiltAtt, query-target-filter=None, page-size=2000, page=0): 
+200
+totalCount: 
+"1"
+```
+
+-d 2
+##### Output example
+```text
+VRFs: 
+{
+<..omitted..>
+    "2981888": "uni/tn-mgmt/ctx-inb",
+    "uni/tn-mgmt/ctx-inb-pctag": "49153",
+<..omitted..>
+}
+EPGs: 
+{
+    "2981888": "uni/tn-mgmt/ctx-inb",
+    "uni/tn-mgmt/ctx-inb": {
+        "32771": "uni/tn-mgmt/ap-se-data-ap/epg-se-data-epg",
+        "49153": "uni/tn-mgmt/ctx-inb",
+        "32772": "uni/tn-mgmt/out-SE/instP-SE_ExtEPG",
+        "11112": "uni/tn-mgmt/mgmtp-default/inb-default"
+    },
+    "16777200": "uni/tn-infra/black-hole"
+}
+Contracts: 
+{
+    "dn": "uni/tn-mgmt/brc-SE-INB",
+    "Consumers": [
+        "uni/tn-mgmt/mgmtp-default/inb-default",
+        "uni/tn-mgmt/out-SE/instP-SE_ExtEPG"
+    ],
+    "Providers": [
+        "uni/tn-mgmt/ap-se-data-ap/epg-se-data-epg"
+    ],
+    "Subjects": {
+        "uni/tn-mgmt/brc-SE-INB/subj-SE-INB": [
+            "uni/tn-common/flt-default"
+        ]
+    },
+    "rules/pod-1/node-102": {
+        "topology/pod-1/node-102/sys/actrl/scope-2981888/rule-2981888-s-11112-d-32771-f-default": {
+            "id": "4158",
+            "fltName": "mgmt:SE-INB",
+            "sPcTag": "11112",
+            "dPcTag": "32771",
+            "fltId": "default",
+            "direction": "bi-dir",
+            "operSt": "enabled",
+            "scopeId": "2981888",
+            "action": "permit",
+            "prio": "src_dst_any"
+        },
+        "topology/pod-1/node-102/sys/actrl/scope-2981888/rule-2981888-s-32771-d-11112-f-default": {
+            "id": "4132",
+            "fltName": "mgmt:SE-INB",
+            "sPcTag": "32771",
+            "dPcTag": "11112",
+            "fltId": "default",
+            "direction": "uni-dir-ignore",
+            "operSt": "enabled",
+            "scopeId": "2981888",
+            "action": "permit",
+            "prio": "src_dst_any"
+        }
+    }
+}
+```
+
+-d 3
+The json file of every response.
