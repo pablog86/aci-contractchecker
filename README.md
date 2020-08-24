@@ -123,7 +123,7 @@ id   Source                                             Destination             
 
 ### Get Contract information
 
-Get using the APIC APIs the tenant/contract information and correlate the information running on the desired leaf.
+Get the tenant/contract information and correlate the information running on the desired leaf using the APIC APIs.
 
 Example for tenant Tenant1 and contract C1 in the pod-1/node-101:
 ```text
