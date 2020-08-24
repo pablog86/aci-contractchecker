@@ -41,11 +41,11 @@ USERNAME = "admin"
 PASS = "ciscopsdt"
 ```
 
-In the case that the file doesn't exist o a parameter is absent, the script will ask the parameter in runtime.
+In the case that the file doesn't exist or a parameter is absent, the script will ask the parameter in runtime.
 
 ### Get all zoning rules in the leaf
 
-Get using the APIC APIs the zoning rules in the desired leaf.
+Get the zoning rules in the desired leaf using the APIC APIs .
 
 Example for pod-1 node-102:
 ```text
