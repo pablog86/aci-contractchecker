@@ -9,7 +9,7 @@ The script can log in a file the outputs executed for analysis in the same folde
 ### Clone the repository
 
 ```text
-git clone https://github.com/pablog86/aci-contractchecker.py
+git clone https://github.com/pablog86/aci-contractchecker
 cd aci-contractchecker
 
 chmod 755 contractchecker.py
@@ -190,7 +190,7 @@ optional arguments:
 --------------------------------------------------------------------------------------------------------------
 ```
 
--l Log file in the same folder with the name "debuglog.json"
+-l -> Log file in the same folder with the name "debuglog.json"
 
 -d 1
 ##### Output example
@@ -286,5 +286,4 @@ Contracts:
 }
 ```
 
--d 3
-The json file of every response.
+-d 3 -> The json file of every response.
