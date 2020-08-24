@@ -47,10 +47,9 @@ In the case that the file doesn't exist o a parameter is absent, the script will
 
 Get using the APIC APIs the zoning rules in the desired leaf.
 
-Example for pod-1 node-101
-
+Example for pod-1 node-102:
 ```text
-python contractchecker.py 1 101
+python contractchecker.py 1 102
 ```
 
 #### Output example
@@ -126,8 +125,7 @@ id   Source                                             Destination             
 
 Get using the APIC APIs the tenant/contract information and correlate the information running on the desired leaf.
 
-Example for tenant Tenant1 and contract C1 in the pod-1/node-101
-
+Example for tenant Tenant1 and contract C1 in the pod-1/node-101:
 ```text
 python contractchecker.py -t Tenant1 -c C1 1 101
 ```
