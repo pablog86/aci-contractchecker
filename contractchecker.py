@@ -20,7 +20,8 @@ import re
 from numpy import transpose
 from itertools import cycle
 import inspect
-from itertools import groupby
+#from itertools import groupby
+from collections import Counter
 
 warnings.simplefilter('ignore', InsecureRequestWarning)
 
@@ -123,17 +124,27 @@ def update(d, u):
 # --------
 
 
+# def count_elem(l):
+#     aux = sum([len(list(group))
+#                for key, group in groupby([elem.keys() for elem in l])])
+#     debug(
+#         aux,
+#         "{} response aggregated lenght:".format(
+#             inspect.stack()[1][3]),
+#         2)
+#     return sum([len(list(group))
+#                 for key, group in groupby([elem.keys() for elem in l])])
+
 def count_elem(l):
-    aux = sum([len(list(group))
-               for key, group in groupby([elem.keys() for elem in l])])
+    s = sum(Counter([list(elem)[0] for elem in l]).values())
+    m = max(Counter([list(elem)[0] for elem in l]).values())
+    aux = max(s, m)
     debug(
         aux,
         "{} response aggregated lenght:".format(
             inspect.stack()[1][3]),
         2)
-    return sum([len(list(group))
-                for key, group in groupby([elem.keys() for elem in l])])
-
+    return aux
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -377,6 +388,8 @@ def get_node_objs(obj, filters=None) -> dict:
             aux = aux + response.json()["imdata"]
             i = i + 1
         debug(len(aux), "get_node_objs response lenght:", 1)
+        if count_elem(aux) > int(response.json()["totalCount"]):
+            printt ("More elements ({}) than totalCount ({})".format(aux, response.json()["totalCount"]))
         return aux
     else:
         return []
@@ -405,6 +418,8 @@ def get_filterid(filterdn):
             aux = aux + response.json()["imdata"]
             i = i + 1
         debug(len(aux), "get_filterid response lenght:", 1)
+        if count_elem(aux) > int(response.json()["totalCount"]):
+            printt ("More elements ({}) than totalCount ({})".format(aux, response.json()["totalCount"]))
         return aux
     else:
         return []
@@ -436,6 +451,8 @@ def get_zoningrule(pod_id, node_id, query=None, subtree=None, filters=None):
             aux = aux + response.json()["imdata"]
             i = i + 1
         debug(len(aux), "get_zoningrule response lenght:", 1)
+        if count_elem(aux) > int(response.json()["totalCount"]):
+            printt ("More elements ({}) than totalCount ({})".format(aux, response.json()["totalCount"]))
         return aux
     else:
         return []
@@ -472,6 +489,8 @@ def get_contracts_info(
             aux = aux + response.json()["imdata"]
             i = i + 1
         debug(len(aux), "get_contracts_info response lenght:", 1)
+        if count_elem(aux) > int(response.json()["totalCount"]):
+            printt ("More elements ({}) than totalCount ({})".format(aux, response.json()["totalCount"]))
         return aux
     else:
         return []
@@ -508,6 +527,8 @@ def get_subject_info(
             aux = aux + response.json()["imdata"]
             i = i + 1
         debug(len(aux), "get_subject_info response lenght:", 1)
+        if count_elem(aux) > int(response.json()["totalCount"]):
+            printt ("More elements ({}) than totalCount ({})".format(aux, response.json()["totalCount"]))
         return aux
     else:
         return []
