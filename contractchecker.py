@@ -28,7 +28,7 @@ warnings.simplefilter('ignore', InsecureRequestWarning)
 # MODIFIABLE DEFINITIONS
 # **********************************************************************************
 verify_https = False  # Validate https certificate
-page_size = 1000  # Elements per page
+page_size = 2000  # Elements per page
 
 # ----------------------------------------------------------------------
 
