@@ -636,6 +636,8 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
                     d_epgs[ctx_name].update({d_vrfs["{}-pctag".format(
                         ctx_name)]: ctx_name}
                     )
+                if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(epg[obj_id]["attributes"]["pcTag"]) < 16386:  #pcTag global
+                    d_epgs.update({epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
             except KeyError:
                 printt(
                     "Undef scope:{} -> sg epg: {} ".format(
@@ -653,6 +655,8 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
                     d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update({d_vrfs["{}-pctag".format(
                         d_vrfs[epg[obj_id]["attributes"][ctx_id]])]: d_vrfs[epg[obj_id]["attributes"][ctx_id]]}
                     )
+                if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(epg[obj_id]["attributes"]["pcTag"]) < 16386:  #pcTag global
+                    d_epgs.update({epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
             except KeyError:
                 printt(
                     "Undef scope:{} -> epg: {} ".format(
@@ -847,11 +851,14 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
         d_contract[node][i]["scopeId"] = d_epgs[d_contract[node][i]["scopeId"]]
         if d_contract[node][i]["sPcTag"] != "any":
             try:
-                if d_contract[node][i]["sPcTag"] in pctags:
+                if d_contract[node][i]["sPcTag"] in pctags:                                                     #reserved pcTag
                     d_contract[node][i]["sPcTag"] = pctags[d_contract[node][i]["sPcTag"]]
                 else:
-                    d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][
-                        i]["scopeId"]][d_contract[node][i]["sPcTag"]]
+                    if d_contract[node][i]["sPcTag"].isdigit() and int(d_contract[node][i]["sPcTag"]) < 16386:    #pcTag Global
+                        d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["sPcTag"]]
+                    else:
+                        d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["scopeId"]][d_contract[node][i]["sPcTag"]]
+
             except KeyError:
                 printt(
                     "Key not found scopeId={} sPcTag={}".format(
@@ -862,8 +869,10 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
                 if d_contract[node][i]["dPcTag"] in pctags:
                     d_contract[node][i]["dPcTag"] = pctags[d_contract[node][i]["dPcTag"]]
                 else:
-                    d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][
-                        i]["scopeId"]][d_contract[node][i]["dPcTag"]]
+                    if d_contract[node][i]["dPcTag"].isdigit() and int(d_contract[node][i]["dPcTag"]) < 16386:    #pcTag Global
+                        d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["dPcTag"]]
+                    else:
+                        d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["scopeId"]][d_contract[node][i]["dPcTag"]]
             except KeyError:
                 printt(
                     "Key not found scopeId={} dPcTag={}".format(
