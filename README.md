@@ -6,6 +6,10 @@ This script generates a correlated output from the zoning-rule in the desired le
 
 The script can log in a file the outputs executed for analysis in the same folder of the script.
 
+## Requirements
+
+***Tested on ACI 4.1 and 5.0***
+
 ### Clone the repository
 
 ```text
