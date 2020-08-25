@@ -124,17 +124,6 @@ def update(d, u):
 # --------
 
 
-# def count_elem(l):
-#     aux = sum([len(list(group))
-#                for key, group in groupby([elem.keys() for elem in l])])
-#     debug(
-#         aux,
-#         "{} response aggregated lenght:".format(
-#             inspect.stack()[1][3]),
-#         2)
-#     return sum([len(list(group))
-#                 for key, group in groupby([elem.keys() for elem in l])])
-
 def count_elem(l):
     s = sum(Counter([list(elem)[0] for elem in l]).values())
     m = max(Counter([list(elem)[0] for elem in l]).values())
@@ -389,7 +378,9 @@ def get_node_objs(obj, filters=None) -> dict:
             i = i + 1
         debug(len(aux), "get_node_objs response lenght:", 1)
         if count_elem(aux) > int(response.json()["totalCount"]):
-            printt ("More elements ({}) than totalCount ({})".format(aux, response.json()["totalCount"]))
+            printt(
+                "More elements ({}) than totalCount ({})".format(
+                    aux, response.json()["totalCount"]))
         return aux
     else:
         return []
@@ -419,7 +410,9 @@ def get_filterid(filterdn):
             i = i + 1
         debug(len(aux), "get_filterid response lenght:", 1)
         if count_elem(aux) > int(response.json()["totalCount"]):
-            printt ("More elements ({}) than totalCount ({})".format(aux, response.json()["totalCount"]))
+            printt(
+                "More elements ({}) than totalCount ({})".format(
+                    aux, response.json()["totalCount"]))
         return aux
     else:
         return []
@@ -452,7 +445,9 @@ def get_zoningrule(pod_id, node_id, query=None, subtree=None, filters=None):
             i = i + 1
         debug(len(aux), "get_zoningrule response lenght:", 1)
         if count_elem(aux) > int(response.json()["totalCount"]):
-            printt ("More elements ({}) than totalCount ({})".format(aux, response.json()["totalCount"]))
+            printt(
+                "More elements ({}) than totalCount ({})".format(
+                    aux, response.json()["totalCount"]))
         return aux
     else:
         return []
@@ -490,7 +485,9 @@ def get_contracts_info(
             i = i + 1
         debug(len(aux), "get_contracts_info response lenght:", 1)
         if count_elem(aux) > int(response.json()["totalCount"]):
-            printt ("More elements ({}) than totalCount ({})".format(aux, response.json()["totalCount"]))
+            printt(
+                "More elements ({}) than totalCount ({})".format(
+                    aux, response.json()["totalCount"]))
         return aux
     else:
         return []
@@ -528,7 +525,9 @@ def get_subject_info(
             i = i + 1
         debug(len(aux), "get_subject_info response lenght:", 1)
         if count_elem(aux) > int(response.json()["totalCount"]):
-            printt ("More elements ({}) than totalCount ({})".format(aux, response.json()["totalCount"]))
+            printt(
+                "More elements ({}) than totalCount ({})".format(
+                    aux, response.json()["totalCount"]))
         return aux
     else:
         return []
@@ -582,7 +581,8 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
         else:
             continue
         try:
-            d_epgs.update({epg[obj_id]["attributes"][ctx_id]: d_vrfs[epg[obj_id]["attributes"][ctx_id]]})
+            d_epgs.update({epg[obj_id]["attributes"][ctx_id]
+                          : d_vrfs[epg[obj_id]["attributes"][ctx_id]]})
             if d_vrfs[epg[obj_id]["attributes"][ctx_id]] in d_epgs:
                 d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update(
                     {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
@@ -630,7 +630,8 @@ def get_vrf(filters=None) -> dict:
                 pctag = "pcTag"
             else:
                 continue
-            d_vrfs.update({vrf[obj_id]["attributes"][scope_id]: vrf[obj_id]["attributes"][ctx_id]})
+            d_vrfs.update({vrf[obj_id]["attributes"][scope_id]
+                          : vrf[obj_id]["attributes"][ctx_id]})
             d_vrfs.update(
                 {"{}-pctag".format(vrf[obj_id]["attributes"][ctx_id]): vrf[obj_id]["attributes"][pctag]})
         d_vrfs.update({"16777200": "uni/tn-infra/black-hole"})
