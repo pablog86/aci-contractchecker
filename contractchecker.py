@@ -166,9 +166,14 @@ def apic_login():
         json_response = json.loads(response.content)
         token = json_response['imdata'][0]['aaaLogin']['attributes']['token']
     except requests.exceptions.RequestException as err:
-        debug(
+        print(
             "HTTP Request failed, Status Code: {status_code}".format(
                 status_code=response.status_code))
+    except KeyError:
+        print(
+            "HTTP Request failed, Status Code: {status_code}".format(
+                status_code=response.status_code))
+        sys.exit()
     return token
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
