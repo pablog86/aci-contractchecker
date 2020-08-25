@@ -21,6 +21,7 @@ from numpy import transpose
 from itertools import cycle
 import inspect
 from collections import Counter
+from datetime import datetime
 
 warnings.simplefilter('ignore', InsecureRequestWarning)
 
@@ -633,11 +634,11 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
                     d_epgs[ctx_name] = {
                         epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
                     d_epgs[ctx_name].update({d_vrfs["{}-pctag".format(
-                        ctx_name)]: d_vrfs[ctx_name]}
+                        ctx_name)]: ctx_name}
                     )
             except KeyError:
                 printt(
-                    "Undef scope:{} -> epg: {} ".format(
+                    "Undef scope:{} -> sg epg: {} ".format(
                         ctx_name,
                         epg[obj_id]["attributes"][epg_id]))
         else:
@@ -984,5 +985,7 @@ the correct renderization of the policy.
                     args.node,
                     args.tenant,
                     args.contract))
+        printt(datetime.now())
+        printt("-"*250)
     except KeyboardInterrupt:
         printt("KeyboardInterrupt -> Goodbye!")
