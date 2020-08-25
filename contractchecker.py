@@ -28,7 +28,7 @@ warnings.simplefilter('ignore', InsecureRequestWarning)
 # MODIFIABLE DEFINITIONS
 # **********************************************************************************
 verify_https = False  # Validate https certificate
-page_size = 2000  # Elements per page
+page_size = 1000  # Elements per page
 
 # ----------------------------------------------------------------------
 
@@ -124,6 +124,13 @@ def update(d, u):
 
 
 def count_elem(l):
+    aux = sum([len(list(group))
+               for key, group in groupby([elem.keys() for elem in l])])
+    debug(
+        aux,
+        "{} response aggregated lenght:".format(
+            inspect.stack()[1][3]),
+        2)
     return sum([len(list(group))
                 for key, group in groupby([elem.keys() for elem in l])])
 
@@ -549,7 +556,7 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
         else:
             continue
         try:
-            d_epgs.update({epg[obj_id]["attributes"][ctx_id]                           : d_vrfs[epg[obj_id]["attributes"][ctx_id]]})
+            d_epgs.update({epg[obj_id]["attributes"][ctx_id]: d_vrfs[epg[obj_id]["attributes"][ctx_id]]})
             if d_vrfs[epg[obj_id]["attributes"][ctx_id]] in d_epgs:
                 d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update(
                     {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
@@ -597,7 +604,7 @@ def get_vrf(filters=None) -> dict:
                 pctag = "pcTag"
             else:
                 continue
-            d_vrfs.update({vrf[obj_id]["attributes"][scope_id]                           : vrf[obj_id]["attributes"][ctx_id]})
+            d_vrfs.update({vrf[obj_id]["attributes"][scope_id]: vrf[obj_id]["attributes"][ctx_id]})
             d_vrfs.update(
                 {"{}-pctag".format(vrf[obj_id]["attributes"][ctx_id]): vrf[obj_id]["attributes"][pctag]})
         d_vrfs.update({"16777200": "uni/tn-infra/black-hole"})
