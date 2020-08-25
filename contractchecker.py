@@ -20,7 +20,6 @@ import re
 from numpy import transpose
 from itertools import cycle
 import inspect
-#from itertools import groupby
 from collections import Counter
 
 warnings.simplefilter('ignore', InsecureRequestWarning)
@@ -29,7 +28,7 @@ warnings.simplefilter('ignore', InsecureRequestWarning)
 # MODIFIABLE DEFINITIONS
 # **********************************************************************************
 verify_https = False  # Validate https certificate
-page_size = 2000  # Elements per page
+page_size = 2000  # Elements per page (low numbers may generate some issues)
 
 # ----------------------------------------------------------------------
 
@@ -124,10 +123,16 @@ def update(d, u):
 # --------
 
 
-def count_elem(l):
+def count_elem(l, maxcount):
+    # Sum the count of repeated elements
     s = sum(Counter([list(elem)[0] for elem in l]).values())
-    m = max(Counter([list(elem)[0] for elem in l]).values())
-    aux = max(s, m)
+    try:
+        # The number of the most concurrent element
+        m = max(Counter([list(elem)[0] for elem in l]).values())
+    except ValueError:
+        m = 0
+        debug("count_elem() - > empty max()", level=2)
+    aux = m if m == maxcount else s
     debug(
         aux,
         "{} response aggregated lenght:".format(
@@ -371,13 +376,19 @@ def get_node_objs(obj, filters=None) -> dict:
     if response is not None:
         aux = response.json()["imdata"]
         i = 1
-        while count_elem(aux) < int(response.json()["totalCount"]):  # len(aux)
+        while count_elem(
+            aux, int(
+                response.json()["totalCount"])) < int(
+                response.json()["totalCount"]):  # len(aux)
             # while response.json()["imdata"]!=[]:
             response = get_method(url, query_target_filter=filters, page=i)
             aux = aux + response.json()["imdata"]
             i = i + 1
         debug(len(aux), "get_node_objs response lenght:", 1)
-        if count_elem(aux) > int(response.json()["totalCount"]):
+        if count_elem(
+            aux, int(
+                response.json()["totalCount"])) > int(
+                response.json()["totalCount"]):
             printt(
                 "More elements ({}) than totalCount ({})".format(
                     aux, response.json()["totalCount"]))
@@ -399,7 +410,10 @@ def get_filterid(filterdn):
     if response is not None:
         aux = response.json()["imdata"]
         i = 1
-        while count_elem(aux) < int(response.json()["totalCount"]):  # len(aux)
+        while count_elem(
+            aux, int(
+                response.json()["totalCount"])) < int(
+                response.json()["totalCount"]):  # len(aux)
             # while response.json()["imdata"]!=[]:
             response = get_method(
                 url,
@@ -409,7 +423,10 @@ def get_filterid(filterdn):
             aux = aux + response.json()["imdata"]
             i = i + 1
         debug(len(aux), "get_filterid response lenght:", 1)
-        if count_elem(aux) > int(response.json()["totalCount"]):
+        if count_elem(
+            aux, int(
+                response.json()["totalCount"])) > int(
+                response.json()["totalCount"]):
             printt(
                 "More elements ({}) than totalCount ({})".format(
                     aux, response.json()["totalCount"]))
@@ -433,7 +450,10 @@ def get_zoningrule(pod_id, node_id, query=None, subtree=None, filters=None):
     if response is not None:
         aux = response.json()["imdata"]
         i = 1
-        while count_elem(aux) < int(response.json()["totalCount"]):  # len(aux)
+        while count_elem(
+            aux, int(
+                response.json()["totalCount"])) < int(
+                response.json()["totalCount"]):  # len(aux)
             # while response.json()["imdata"]!=[]:
             response = get_method(
                 url,
@@ -444,7 +464,10 @@ def get_zoningrule(pod_id, node_id, query=None, subtree=None, filters=None):
             aux = aux + response.json()["imdata"]
             i = i + 1
         debug(len(aux), "get_zoningrule response lenght:", 1)
-        if count_elem(aux) > int(response.json()["totalCount"]):
+        if count_elem(
+            aux, int(
+                response.json()["totalCount"])) > int(
+                response.json()["totalCount"]):
             printt(
                 "More elements ({}) than totalCount ({})".format(
                     aux, response.json()["totalCount"]))
@@ -473,7 +496,10 @@ def get_contracts_info(
     if response is not None:
         aux = response.json()["imdata"]
         i = 1
-        while count_elem(aux) < int(response.json()["totalCount"]):  # len(aux)
+        while count_elem(
+            aux, int(
+                response.json()["totalCount"])) < int(
+                response.json()["totalCount"]):  # len(aux)
             # while response.json()["imdata"]!=[]:
             response = get_method(
                 url,
@@ -484,7 +510,10 @@ def get_contracts_info(
             aux = aux + response.json()["imdata"]
             i = i + 1
         debug(len(aux), "get_contracts_info response lenght:", 1)
-        if count_elem(aux) > int(response.json()["totalCount"]):
+        if count_elem(
+            aux, int(
+                response.json()["totalCount"])) > int(
+                response.json()["totalCount"]):
             printt(
                 "More elements ({}) than totalCount ({})".format(
                     aux, response.json()["totalCount"]))
@@ -513,7 +542,10 @@ def get_subject_info(
     if response is not None:
         aux = response.json()["imdata"]
         i = 1
-        while count_elem(aux) < int(response.json()["totalCount"]):  # len(aux)
+        while count_elem(
+            aux, int(
+                response.json()["totalCount"])) < int(
+                response.json()["totalCount"]):  # len(aux)
             # while response.json()["imdata"]!=[]:
             response = get_method(
                 url,
@@ -524,7 +556,10 @@ def get_subject_info(
             aux = aux + response.json()["imdata"]
             i = i + 1
         debug(len(aux), "get_subject_info response lenght:", 1)
-        if count_elem(aux) > int(response.json()["totalCount"]):
+        if count_elem(
+            aux, int(
+                response.json()["totalCount"])) > int(
+                response.json()["totalCount"]):
             printt(
                 "More elements ({}) than totalCount ({})".format(
                     aux, response.json()["totalCount"]))
@@ -578,25 +613,50 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
             obj_id = "fvAEPg"
             ctx_id = "scope"
             epg_id = "dn"
+        elif "vnsEPgDef" in epg:
+            obj_id = "vnsEPgDef"
+            ctx_id = "dn"
+            epg_id = "lIfCtxDn"
         else:
             continue
-        try:
-            d_epgs.update({epg[obj_id]["attributes"][ctx_id]
-                          : d_vrfs[epg[obj_id]["attributes"][ctx_id]]})
-            if d_vrfs[epg[obj_id]["attributes"][ctx_id]] in d_epgs:
-                d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update(
-                    {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
-            else:
-                d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]] = {
-                    epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
-                d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update({d_vrfs["{}-pctag".format(
-                    d_vrfs[epg[obj_id]["attributes"][ctx_id]])]: d_vrfs[epg[obj_id]["attributes"][ctx_id]]}
-                )
-        except KeyError:
-            printt(
-                "Undef scope:{} -> epg: {} ".format(
-                    epg[obj_id]["attributes"][ctx_id],
-                    epg[obj_id]["attributes"][epg_id]))
+
+        if (obj_id == "vnsEPgDef"):  # Service Graph shadow EPG
+            try:
+                ctx_name = re.findall(
+                    r"(?<=S-\[).+?(?=\])",
+                    epg[obj_id]["attributes"][ctx_id])[0]  # TODO: some SG doesnt inform ctx
+                d_epgs.update({d_vrfs[ctx_name]: ctx_name})
+                if ctx_name in d_epgs:
+                    d_epgs[ctx_name].update(
+                        {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                else:
+                    d_epgs[ctx_name] = {
+                        epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
+                    d_epgs[ctx_name].update({d_vrfs["{}-pctag".format(
+                        ctx_name)]: d_vrfs[ctx_name]}
+                    )
+            except KeyError:
+                printt(
+                    "Undef scope:{} -> epg: {} ".format(
+                        ctx_name,
+                        epg[obj_id]["attributes"][epg_id]))
+        else:
+            try:
+                d_epgs.update({epg[obj_id]["attributes"][ctx_id]: d_vrfs[epg[obj_id]["attributes"][ctx_id]]})
+                if d_vrfs[epg[obj_id]["attributes"][ctx_id]] in d_epgs:
+                    d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update(
+                        {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                else:
+                    d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]] = {
+                        epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
+                    d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update({d_vrfs["{}-pctag".format(
+                        d_vrfs[epg[obj_id]["attributes"][ctx_id]])]: d_vrfs[epg[obj_id]["attributes"][ctx_id]]}
+                    )
+            except KeyError:
+                printt(
+                    "Undef scope:{} -> epg: {} ".format(
+                        epg[obj_id]["attributes"][ctx_id],
+                        epg[obj_id]["attributes"][epg_id]))
     d_epgs.update({"16777200": d_vrfs["16777200"]})  # black-hole
     return d_epgs
 
@@ -630,8 +690,8 @@ def get_vrf(filters=None) -> dict:
                 pctag = "pcTag"
             else:
                 continue
-            d_vrfs.update({vrf[obj_id]["attributes"][scope_id]
-                          : vrf[obj_id]["attributes"][ctx_id]})
+            d_vrfs.update({vrf[obj_id]["attributes"][scope_id]: vrf[obj_id]["attributes"][ctx_id]})
+            d_vrfs.update({vrf[obj_id]["attributes"][ctx_id]: vrf[obj_id]["attributes"][scope_id]})
             d_vrfs.update(
                 {"{}-pctag".format(vrf[obj_id]["attributes"][ctx_id]): vrf[obj_id]["attributes"][pctag]})
         d_vrfs.update({"16777200": "uni/tn-infra/black-hole"})
@@ -650,7 +710,7 @@ def EPGs(filters=None) -> dict:
         "epg": "epgPKey",
         "scope": "scopeId",
         "bd": "dn"}
-    epg_type = ("fvAREpP", "vzToEPg", "fvBD")  # fvABD
+    epg_type = ("fvAREpP", "vzToEPg", "fvBD", "vnsEPgDef")  # fvABD
     d_epgs = {}
     if filters:
         f = filters.split("/")
