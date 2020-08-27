@@ -894,12 +894,13 @@ def get_filterinfo(pod_id, node_id, filters=None):
 
 def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
     rtype=("implicit", "implarp", "default")
+    d_epgs = {}
+    scopes = []
+    brc = None
     d_contract = mapping_zoningrule_contract(pod_id, node_id, tenant, contract)
     node = "rules/pod-{}/node-{}".format(pod_id, node_id)
     if not bool(d_contract):
         return None
-    d_epgs = {}
-    scopes = []
     for i in d_contract[node]:
         scopes.append(d_contract[node][i]["scopeId"])
     scopes = set(scopes)
@@ -946,23 +947,28 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
                         d_contract[node][i]["scopeId"],
                         d_contract[node][i]["dPcTag"]))
         
-        defRules = []
         if d_contract[node][i]["fltName"] in rtype:     #Default filter management 
             for fltInfo in d_fltInfo:
                 f = fltInfo["vzRsRFltAtt"]["attributes"]["dn"]
-                if re.search(d_contract[node][i]["sPcTag"], f) and re.search(d_contract[node][i]["dPcTag"], f) and re.search(d_contract[node][i]["fltId"], f):
-                    aux = re.findall("(?<=/cdef-\[).+?(?=\])", fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
-                    if aux != None:
-                        print("rule:{}\n{}".format(i,d_contract[node][i]))
-                        d_contract[node][i]["fltName"] = aux
-                        defRules.append(i)
+                try:
+                    if re.search(d_contract[node][i]["sPcTag"], f) and re.search(d_contract[node][i]["dPcTag"], f) and re.search(d_contract[node][i]["fltId"], f):
+                        aux = re.findall("(?<=/cdef-\[).+?(?=\])", fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
+                        if aux != None:
+                            d_contract[node][i]["fltName"] = aux
+                except:
+                    debug("re.search error (bad character range n-a), sPcTag: {},  dPcTag: {}, fltId: {}".format(d_contract[node][i]["sPcTag"],d_contract[node][i]["dPcTag"],d_contract[node][i]["fltId"]),level=1)
+                    if f == "default":
+                        aux = re.findall("(?<=/cdef-\[).+?(?=\])", fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
+                        if aux != None:
+                            d_contract[node][i]["fltName"] = aux
+    if brc: #Default filter management purge | TODO: improve this!
+        r=[]
+        for i in d_contract[node]:
+            if d_contract[node][i]["fltName"] != brc:
+                r.append(i)
+        for i in r:
+            del d_contract[node][i]
 
-    if brc:
-        for defRule in defRules:
-            if d_contract[node][defRule]["fltName"] != brc:
-                del d_contract[node][defRule]
-
-    print(json.dumps(d_contract, indent=4))
     return d_contract
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
