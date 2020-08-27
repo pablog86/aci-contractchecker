@@ -636,8 +636,10 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
                     d_epgs[ctx_name].update({d_vrfs["{}-pctag".format(
                         ctx_name)]: ctx_name}
                     )
-                if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(epg[obj_id]["attributes"]["pcTag"]) < 16386:  #pcTag global
-                    d_epgs.update({epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
+                        epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
+                    d_epgs.update(
+                        {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
             except KeyError:
                 printt(
                     "Undef scope:{} -> sg epg: {} ".format(
@@ -655,8 +657,10 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
                     d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update({d_vrfs["{}-pctag".format(
                         d_vrfs[epg[obj_id]["attributes"][ctx_id]])]: d_vrfs[epg[obj_id]["attributes"][ctx_id]]}
                     )
-                if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(epg[obj_id]["attributes"]["pcTag"]) < 16386:  #pcTag global
-                    d_epgs.update({epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
+                        epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
+                    d_epgs.update(
+                        {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
             except KeyError:
                 printt(
                     "Undef scope:{} -> epg: {} ".format(
@@ -789,12 +793,13 @@ def mapping_zoningrule_contract(pod_id, node_id, tenant, contract):
                 rules[rule].update(
                     {t: zoningrule["actrlRule"]["attributes"][t]})
             if zoningrule["actrlRule"]["attributes"]["ctrctName"] != "":
-                aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(":")
+                aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
+                    ":")
                 rules[rule].update(
                     {"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
             else:
                 rules[rule].update(
-                         {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
+                    {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
         d_contract.update(
             {"rules/pod-{}/node-{}".format(pod_id, node_id): rules})
 
@@ -802,37 +807,18 @@ def mapping_zoningrule_contract(pod_id, node_id, tenant, contract):
         d_contract = get_contract(tenant, contract)
         if not bool(d_contract):
             return None
-
-        ###########
-        #if tenant == "common" and contract == "default":
-        #    zoningrules = get_zoningrule(
-        #        pod_id,
-        #        node_id,
-        #        filters="wcard(actrlRule.fltId,\"{}\")".format(
-        #            contract))
-        #else: 
-        #    zoningrules = get_zoningrule(
-        #        pod_id,
-        #        node_id,
-        #        filters="wcard(actrlRule.ctrctName,\"{}:{}\")".format(
-        #            tenant,
-        #            contract))
-        ###########
         zoningrules = get_zoningrule(
             pod_id,
             node_id,
             filters="wcard(actrlRule.ctrctName,\"{}:{}\")".format(
                 tenant,
                 contract))
-
         if zoningrules == []:
             zoningrules = get_zoningrule(
-            pod_id,
-            node_id,
-            filters="wcard(actrlRule.fltId,\"default\")"
-            )
+                pod_id,
+                node_id,
+                filters="wcard(actrlRule.fltId,\"default\")")
 
-######################
         if zoningrules != []:
             for zoningrule in zoningrules:
                 rule = zoningrule["actrlRule"]["attributes"]["dn"]
@@ -841,14 +827,15 @@ def mapping_zoningrule_contract(pod_id, node_id, tenant, contract):
                     rules[rule].update(
                         {t: zoningrule["actrlRule"]["attributes"][t]})
                 if zoningrule["actrlRule"]["attributes"]["ctrctName"] != "":
-                    aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(":")
+                    aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
+                        ":")
                     rules[rule].update(
                         {"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
                 else:
                     rules[rule].update(
-                             {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
+                        {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
             d_contract.update(
-                    {"rules/pod-{}/node-{}".format(pod_id, node_id): rules})
+                {"rules/pod-{}/node-{}".format(pod_id, node_id): rules})
         else:
             d_contract.update(
                 {"rules/pod-{}/node-{}".format(pod_id, node_id): {}})
@@ -857,10 +844,11 @@ def mapping_zoningrule_contract(pod_id, node_id, tenant, contract):
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
+
 def get_filterinfo(pod_id, node_id, filters=None):
     url = APIC_URL + \
         "/api/node/class/topology/pod-{}/node-{}/vzRsRFltAtt.json".format(pod_id, node_id)
-    #filters="and(wcard(actrlRule.dn,\"{}\"),wcard(actrlRule.dn,\"{}\"),wcard(actrlRule.dn,\"fp-{}\"))".format(cons,prov,fp)
+    # filters="and(wcard(actrlRule.dn,\"{}\"),wcard(actrlRule.dn,\"{}\"),wcard(actrlRule.dn,\"fp-{}\"))".format(cons,prov,fp)
     response = get_method(
         url,
         query_target_filter=filters)
@@ -891,9 +879,8 @@ def get_filterinfo(pod_id, node_id, filters=None):
         return []
 
 
-
 def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
-    rtype=("implicit", "implarp", "default")
+    rtype = ("implicit", "implarp", "default")
     d_epgs = {}
     scopes = []
     brc = None
@@ -911,7 +898,8 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
         for scope in scopes:
             update(d_epgs, EPGs("scope-{}".format(scope)))
         brc = "uni/tn-{}/brc-{}".format(tenant, contract)
-        d_fltInfo = get_filterinfo(pod_id, node_id, "wcard(vzRsRFltAtt.dn, \"{}\")".format(brc))
+        d_fltInfo = get_filterinfo(
+            pod_id, node_id, "wcard(vzRsRFltAtt.dn, \"{}\")".format(brc))
     debug(d_epgs, "EPGs: ", 2)
     debug(d_contract, "Contracts: ", 2)
     debug(d_fltInfo, "Filter Info: ", 2)
@@ -919,13 +907,15 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
         d_contract[node][i]["scopeId"] = d_epgs[d_contract[node][i]["scopeId"]]
         if d_contract[node][i]["sPcTag"] != "any":
             try:
-                if d_contract[node][i]["sPcTag"] in pctags:                                                     #reserved pcTag
+                if d_contract[node][i]["sPcTag"] in pctags:  # reserved pcTag
                     d_contract[node][i]["sPcTag"] = pctags[d_contract[node][i]["sPcTag"]]
                 else:
-                    if d_contract[node][i]["sPcTag"].isdigit() and int(d_contract[node][i]["sPcTag"]) < 16386:    #pcTag Global
+                    if d_contract[node][i]["sPcTag"].isdigit() and int(
+                            d_contract[node][i]["sPcTag"]) < 16386:  # pcTag Global
                         d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["sPcTag"]]
                     else:
-                        d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["scopeId"]][d_contract[node][i]["sPcTag"]]
+                        d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node]
+                            [i]["scopeId"]][d_contract[node][i]["sPcTag"]]
 
             except KeyError:
                 printt(
@@ -937,32 +927,49 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
                 if d_contract[node][i]["dPcTag"] in pctags:
                     d_contract[node][i]["dPcTag"] = pctags[d_contract[node][i]["dPcTag"]]
                 else:
-                    if d_contract[node][i]["dPcTag"].isdigit() and int(d_contract[node][i]["dPcTag"]) < 16386:    #pcTag Global
+                    if d_contract[node][i]["dPcTag"].isdigit() and int(
+                            d_contract[node][i]["dPcTag"]) < 16386:  # pcTag Global
                         d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["dPcTag"]]
                     else:
-                        d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["scopeId"]][d_contract[node][i]["dPcTag"]]
+                        d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node]
+                            [i]["scopeId"]][d_contract[node][i]["dPcTag"]]
             except KeyError:
                 printt(
                     "Key not found scopeId={} dPcTag={}".format(
                         d_contract[node][i]["scopeId"],
                         d_contract[node][i]["dPcTag"]))
-        
-        if d_contract[node][i]["fltName"] in rtype:     #Default filter management 
+
+        if d_contract[node][i]["fltName"] in rtype:  # Default filter management
             for fltInfo in d_fltInfo:
                 f = fltInfo["vzRsRFltAtt"]["attributes"]["dn"]
                 try:
-                    if re.search(d_contract[node][i]["sPcTag"], f) and re.search(d_contract[node][i]["dPcTag"], f) and re.search(d_contract[node][i]["fltId"], f):
-                        aux = re.findall("(?<=/cdef-\[).+?(?=\])", fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
-                        if aux != None:
+                    if re.search(
+                        d_contract[node][i]["sPcTag"],
+                        f) and re.search(
+                        d_contract[node][i]["dPcTag"],
+                        f) and re.search(
+                        d_contract[node][i]["fltId"],
+                            f):
+                        aux = re.findall(
+                            r"(?<=/cdef-\[).+?(?=\])",
+                            fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
+                        if aux is not None:
                             d_contract[node][i]["fltName"] = aux
-                except:
-                    debug("re.search error (bad character range n-a), sPcTag: {},  dPcTag: {}, fltId: {}".format(d_contract[node][i]["sPcTag"],d_contract[node][i]["dPcTag"],d_contract[node][i]["fltId"]),level=1)
+                except BaseException:
+                    debug(
+                        "re.search error (bad character range n-a), sPcTag: {},  dPcTag: {}, fltId: {}".format(
+                            d_contract[node][i]["sPcTag"],
+                            d_contract[node][i]["dPcTag"],
+                            d_contract[node][i]["fltId"]),
+                        level=1)
                     if f == "default":
-                        aux = re.findall("(?<=/cdef-\[).+?(?=\])", fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
-                        if aux != None:
+                        aux = re.findall(
+                            r"(?<=/cdef-\[).+?(?=\])",
+                            fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
+                        if aux is not None:
                             d_contract[node][i]["fltName"] = aux
-    if brc: #Default filter management purge | TODO: improve this!
-        r=[]
+    if brc:  # Default filter management purge | TODO: improve this!
+        r = []
         for i in d_contract[node]:
             if d_contract[node][i]["fltName"] != brc:
                 r.append(i)
@@ -1052,7 +1059,8 @@ the correct renderization of the policy.
 
     if no_envs:
         APIC_URL = str(input("APIC's URL: "))
-        APIC_URL = "https://{}".format(APIC_URL) if APIC_URL[0:4] != "http" else APIC_URL    
+        APIC_URL = "https://{}".format(
+            APIC_URL) if APIC_URL[0:4] != "http" else APIC_URL
         USERNAME = str(input("Username: "))
         PASS = getpass("Password: ")
     else:
@@ -1060,7 +1068,8 @@ the correct renderization of the policy.
             APIC_URL = envs.URL
         except AttributeError:
             APIC_URL = str(input("APIC's URL: "))
-            APIC_URL = "https://{}".format(APIC_URL) if APIC_URL[0:4] != "http" else APIC_URL
+            APIC_URL = "https://{}".format(
+                APIC_URL) if APIC_URL[0:4] != "http" else APIC_URL
         try:
             USERNAME = envs.USERNAME
         except AttributeError:
@@ -1085,6 +1094,6 @@ the correct renderization of the policy.
                     args.tenant,
                     args.contract))
         printt(datetime.now())
-        printt("-"*250)
+        printt("-" * 250)
     except KeyboardInterrupt:
         printt("KeyboardInterrupt -> Goodbye!")
