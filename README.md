@@ -74,72 +74,72 @@ python contractchecker.py 1 102
 ```text
 ################### Rules in node: rules/pod-1/node-102 ###################
 
-id   Source                                             Destination                                        Direction      State   VRF                                         Action          Prio                   Filter-Contract
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-4172 tn-mgmt/mgmtp-default/inb-default                  tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt bi-dir         enabled tn-common/ctx-VRF_Common                    permit          (09)src_dst_any        (default)default        
-4165 tn-mgmt/mgmtp-default/inb-default                  any                                                uni-dir        enabled tn-common/ctx-VRF_Common                    deny,log        (12)shsrc_any_any_deny (implicit)implicit       
-4146 any                                                any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (21)any_any_any        (implicit)implicit       
-4148 tn-mgmt/mgmtp-default/inb-default                  int-shrsvc                                         uni-dir        enabled tn-mgmt/ctx-inb                             permit_override (09)src_dst_any        (implicit)implicit       
-4157 tn-mgmt/mgmtp-default/inb-default                  tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4141 tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4135 tn-mgmt/mgmtp-default/inb-default                  tn-common/ap-shared_pat/epg-csr_pat                bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4144 tn-common/ap-shared_pat/epg-csr_pat                tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4137 tn-mgmt/mgmtp-default/inb-default                  tn-common/ap-securedc-inbound/epg-securedc-inbound bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4161 tn-common/ap-securedc-inbound/epg-securedc-inbound tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4167 any                                                tn-mgmt/BD-inb                                     uni-dir        enabled tn-mgmt/ctx-inb                             permit          (16)any_dest_any       (implicit)implicit       
-4153 tn-common/ap-securedc-inbound/epg-securedc-inbound any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit       
-4130 tn-mgmt/mgmtp-default/inb-default                  tn-CWP-demo/ap-CWP-AP/epg-cwp-epg                  bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4151 tn-CWP-demo/ap-CWP-AP/epg-cwp-epg                  tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4154 tn-common/ap-shared_pat/epg-csr_pat                any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit       
-4159 tn-mgmt/mgmtp-default/inb-default                  tn-DHCP/ap-dhcp_servers/epg-subnet-198.19.193.0_24 bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4160 tn-DHCP/ap-dhcp_servers/epg-subnet-198.19.193.0_24 tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4176 tn-CWP-demo/ap-CWP-AP/epg-cwp-epg                  any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit       
-4138 tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit       
-4139 tn-DHCP/ap-dhcp_servers/epg-subnet-198.19.193.0_24 any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit       
-4143 any                                                any                                                uni-dir        enabled tn-mgmt/ctx-inb                             permit          (17)any_any_filter     (implarp)implarp        
-4140 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (22)any_vrf_any_deny   (implicit)implicit       
-4158 tn-mgmt/mgmtp-default/inb-default                  tn-mgmt/ap-se-data-ap/epg-se-data-epg              bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)mgmt:SE-INB    
-4132 tn-mgmt/ap-se-data-ap/epg-se-data-epg              tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)mgmt:SE-INB    
-4178 tn-mgmt/mgmtp-default/inb-default                  tn-common/out-L3_Out/instP-Outside                 bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4179 tn-common/out-L3_Out/instP-Outside                 tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4133 tn-common/ctx-VRF_Common                           tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt uni-dir        enabled tn-common/ctx-VRF_Common                    permit          (09)src_dst_any        (default)default        
-4134 tn-mgmt/mgmtp-default/inb-default                  tn-common/ap-dcp/epg-ops                           uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4169 tn-common/ap-dcp/epg-ops                           tn-mgmt/mgmtp-default/inb-default                  bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)default        
-4180 tn-common/ap-dcp/epg-ops                           any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit       
-4096 any                                                any                                                uni-dir        enabled tn-infra/black-hole                         deny,log        (21)any_any_any        (implicit)implicit       
-4097 any                                                any                                                uni-dir        enabled tn-infra/black-hole                         permit          (17)any_any_filter     (implarp)implarp        
-4098 any                                                any                                                uni-dir        enabled tn-common/ctx-VRF_Common                    deny,log        (21)any_any_any        (implicit)implicit       
-4099 any                                                any                                                uni-dir        enabled tn-common/ctx-VRF_Common                    permit          (17)any_any_filter     (implarp)implarp        
-4100 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-common/ctx-VRF_Common                    deny,log        (22)any_vrf_any_deny   (implicit)implicit       
-4101 any                                                tn-common/BD-tetration-pods                        uni-dir        enabled tn-common/ctx-VRF_Common                    permit          (16)any_dest_any       (implicit)implicit       
-4102 any                                                tn-common/BD-useg-inbound                          uni-dir        enabled tn-common/ctx-VRF_Common                    permit          (16)any_dest_any       (implicit)implicit       
-4103 any                                                any                                                uni-dir        enabled tn-mgmt/ctx-oob                             deny,log        (21)any_any_any        (implicit)implicit       
-4104 any                                                any                                                uni-dir        enabled tn-mgmt/ctx-oob                             permit          (17)any_any_filter     (implarp)implarp        
-4105 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-mgmt/ctx-oob                             deny,log        (22)any_vrf_any_deny   (implicit)implicit       
-4106 any                                                any                                                uni-dir        enabled tn-iSCSI/ctx-iSCSI                          deny,log        (21)any_any_any        (implicit)implicit       
-4107 any                                                any                                                uni-dir        enabled tn-iSCSI/ctx-iSCSI                          permit          (17)any_any_filter     (implarp)implarp        
-4108 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-iSCSI/ctx-iSCSI                          deny,log        (22)any_vrf_any_deny   (implicit)implicit       
-4109 any                                                tn-ACI-Security-Integration/BD-CCL1-2              uni-dir        enabled tn-ACI-Security-Integration/ctx-Device-Mgmt permit          (16)any_dest_any       (implicit)implicit       
-4110 any                                                tn-iSCSI/BD-iSCSI-A                                uni-dir        enabled tn-iSCSI/ctx-iSCSI                          permit          (16)any_dest_any       (implicit)implicit       
-4111 any                                                tn-ACI-Security-Integration/BD-CCL3-4              uni-dir        enabled tn-ACI-Security-Integration/ctx-Device-Mgmt permit          (16)any_dest_any       (implicit)implicit       
-4112 any                                                any                                                uni-dir        enabled tn-ACI-Security-Integration/ctx-Device-Mgmt deny,log        (21)any_any_any        (implicit)implicit       
-4113 any                                                any                                                uni-dir        enabled tn-ACI-Security-Integration/ctx-Device-Mgmt permit          (17)any_any_filter     (implarp)implarp        
-4114 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-ACI-Security-Integration/ctx-Device-Mgmt deny,log        (22)any_vrf_any_deny   (implicit)implicit       
-4115 any                                                tn-ms/BD-Live_Migration                            uni-dir        enabled tn-ms/ctx-Live_Migration                    permit          (16)any_dest_any       (implicit)implicit       
-4116 any                                                tn-vivdalvi511131/BD-opencart_bd                   uni-dir        enabled tn-vivdalvi511131/ctx-opencart_vrf          permit          (16)any_dest_any       (implicit)implicit       
-4117 any                                                any                                                uni-dir        enabled tn-ms/ctx-Live_Migration                    deny,log        (21)any_any_any        (implicit)implicit       
-4118 any                                                any                                                uni-dir        enabled tn-ms/ctx-Live_Migration                    permit          (17)any_any_filter     (implarp)implarp        
-4119 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-ms/ctx-Live_Migration                    deny,log        (22)any_vrf_any_deny   (implicit)implicit       
-4120 any                                                any                                                uni-dir        enabled tn-vivdalvi511131/ctx-opencart_vrf          deny,log        (21)any_any_any        (implicit)implicit       
-4121 any                                                any                                                uni-dir        enabled tn-vivdalvi511131/ctx-opencart_vrf          permit          (17)any_any_filter     (implarp)implarp        
-4122 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-vivdalvi511131/ctx-opencart_vrf          deny,log        (22)any_vrf_any_deny   (implicit)implicit       
-4123 any                                                tn-iSCSI/BD-iSCSI-B                                uni-dir        enabled tn-iSCSI/ctx-iSCSI                          permit          (16)any_dest_any       (implicit)implicit       
-4124 tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt ext-0.0.0.0/0                                      uni-dir        enabled tn-common/ctx-VRF_Common                    permit          (09)src_dst_any        (default)default        
-4150 tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt int-shrsvc                                         uni-dir        enabled tn-common/ctx-VRF_Common                    permit_override (09)src_dst_any        (implicit)implicit       
-4168 tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-common/ctx-VRF_Common                    permit          (09)src_dst_any        (default)default        
+id   Source                                             Destination                                        Direction      State   VRF                                         Action          Prio                   Filter-Contract             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4172 tn-mgmt/mgmtp-default/inb-default                  tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt bi-dir         enabled tn-common/ctx-VRF_Common                    permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4165 tn-mgmt/mgmtp-default/inb-default                  any                                                uni-dir        enabled tn-common/ctx-VRF_Common                    deny,log        (12)shsrc_any_any_deny (implicit)implicit                        
+4146 any                                                any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (21)any_any_any        (implicit)implicit                        
+4148 tn-mgmt/mgmtp-default/inb-default                  int-shrsvc                                         uni-dir        enabled tn-mgmt/ctx-inb                             permit_override (09)src_dst_any        (implicit)implicit                        
+4157 tn-mgmt/mgmtp-default/inb-default                  tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4141 tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4135 tn-mgmt/mgmtp-default/inb-default                  tn-common/ap-shared_pat/epg-csr_pat                bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4144 tn-common/ap-shared_pat/epg-csr_pat                tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4137 tn-mgmt/mgmtp-default/inb-default                  tn-common/ap-securedc-inbound/epg-securedc-inbound bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4161 tn-common/ap-securedc-inbound/epg-securedc-inbound tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4167 any                                                tn-mgmt/BD-inb                                     uni-dir        enabled tn-mgmt/ctx-inb                             permit          (16)any_dest_any       (implicit)implicit                        
+4153 tn-common/ap-securedc-inbound/epg-securedc-inbound any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit                        
+4130 tn-mgmt/mgmtp-default/inb-default                  tn-CWP-demo/ap-CWP-AP/epg-cwp-epg                  bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4151 tn-CWP-demo/ap-CWP-AP/epg-cwp-epg                  tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4154 tn-common/ap-shared_pat/epg-csr_pat                any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit                        
+4159 tn-mgmt/mgmtp-default/inb-default                  tn-DHCP/ap-dhcp_servers/epg-subnet-198.19.193.0_24 bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4160 tn-DHCP/ap-dhcp_servers/epg-subnet-198.19.193.0_24 tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4176 tn-CWP-demo/ap-CWP-AP/epg-cwp-epg                  any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit                        
+4138 tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit                        
+4139 tn-DHCP/ap-dhcp_servers/epg-subnet-198.19.193.0_24 any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit                        
+4143 any                                                any                                                uni-dir        enabled tn-mgmt/ctx-inb                             permit          (17)any_any_filter     (implarp)implarp                         
+4140 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (22)any_vrf_any_deny   (implicit)implicit                        
+4158 tn-mgmt/mgmtp-default/inb-default                  tn-mgmt/ap-se-data-ap/epg-se-data-epg              bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-mgmt/brc-SE-INB          
+4132 tn-mgmt/ap-se-data-ap/epg-se-data-epg              tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-mgmt/brc-SE-INB          
+4178 tn-mgmt/mgmtp-default/inb-default                  tn-common/out-L3_Out/instP-Outside                 bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4179 tn-common/out-L3_Out/instP-Outside                 tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4133 tn-common/ctx-VRF_Common                           tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt uni-dir        enabled tn-common/ctx-VRF_Common                    permit          (09)src_dst_any        (default)default                         
+4134 tn-mgmt/mgmtp-default/inb-default                  tn-common/ap-dcp/epg-ops                           uni-dir-ignore enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4169 tn-common/ap-dcp/epg-ops                           tn-mgmt/mgmtp-default/inb-default                  bi-dir         enabled tn-mgmt/ctx-inb                             permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
+4180 tn-common/ap-dcp/epg-ops                           any                                                uni-dir        enabled tn-mgmt/ctx-inb                             deny,log        (12)shsrc_any_any_deny (implicit)implicit                        
+4096 any                                                any                                                uni-dir        enabled tn-infra/black-hole                         deny,log        (21)any_any_any        (implicit)implicit                        
+4097 any                                                any                                                uni-dir        enabled tn-infra/black-hole                         permit          (17)any_any_filter     (implarp)implarp                         
+4098 any                                                any                                                uni-dir        enabled tn-common/ctx-VRF_Common                    deny,log        (21)any_any_any        (implicit)implicit                        
+4099 any                                                any                                                uni-dir        enabled tn-common/ctx-VRF_Common                    permit          (17)any_any_filter     (implarp)implarp                         
+4100 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-common/ctx-VRF_Common                    deny,log        (22)any_vrf_any_deny   (implicit)implicit                        
+4101 any                                                tn-common/BD-tetration-pods                        uni-dir        enabled tn-common/ctx-VRF_Common                    permit          (16)any_dest_any       (implicit)implicit                        
+4102 any                                                tn-common/BD-useg-inbound                          uni-dir        enabled tn-common/ctx-VRF_Common                    permit          (16)any_dest_any       (implicit)implicit                        
+4103 any                                                any                                                uni-dir        enabled tn-mgmt/ctx-oob                             deny,log        (21)any_any_any        (implicit)implicit                        
+4104 any                                                any                                                uni-dir        enabled tn-mgmt/ctx-oob                             permit          (17)any_any_filter     (implarp)implarp                         
+4105 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-mgmt/ctx-oob                             deny,log        (22)any_vrf_any_deny   (implicit)implicit                        
+4106 any                                                any                                                uni-dir        enabled tn-iSCSI/ctx-iSCSI                          deny,log        (21)any_any_any        (implicit)implicit                        
+4107 any                                                any                                                uni-dir        enabled tn-iSCSI/ctx-iSCSI                          permit          (17)any_any_filter     (implarp)implarp                         
+4108 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-iSCSI/ctx-iSCSI                          deny,log        (22)any_vrf_any_deny   (implicit)implicit                        
+4109 any                                                tn-ACI-Security-Integration/BD-CCL1-2              uni-dir        enabled tn-ACI-Security-Integration/ctx-Device-Mgmt permit          (16)any_dest_any       (implicit)implicit                        
+4110 any                                                tn-iSCSI/BD-iSCSI-A                                uni-dir        enabled tn-iSCSI/ctx-iSCSI                          permit          (16)any_dest_any       (implicit)implicit                        
+4111 any                                                tn-ACI-Security-Integration/BD-CCL3-4              uni-dir        enabled tn-ACI-Security-Integration/ctx-Device-Mgmt permit          (16)any_dest_any       (implicit)implicit                        
+4112 any                                                any                                                uni-dir        enabled tn-ACI-Security-Integration/ctx-Device-Mgmt deny,log        (21)any_any_any        (implicit)implicit                        
+4113 any                                                any                                                uni-dir        enabled tn-ACI-Security-Integration/ctx-Device-Mgmt permit          (17)any_any_filter     (implarp)implarp                         
+4114 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-ACI-Security-Integration/ctx-Device-Mgmt deny,log        (22)any_vrf_any_deny   (implicit)implicit                        
+4115 any                                                tn-ms/BD-Live_Migration                            uni-dir        enabled tn-ms/ctx-Live_Migration                    permit          (16)any_dest_any       (implicit)implicit                        
+4116 any                                                tn-vivdalvi511131/BD-opencart_bd                   uni-dir        enabled tn-vivdalvi511131/ctx-opencart_vrf          permit          (16)any_dest_any       (implicit)implicit                        
+4117 any                                                any                                                uni-dir        enabled tn-ms/ctx-Live_Migration                    deny,log        (21)any_any_any        (implicit)implicit                        
+4118 any                                                any                                                uni-dir        enabled tn-ms/ctx-Live_Migration                    permit          (17)any_any_filter     (implarp)implarp                         
+4119 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-ms/ctx-Live_Migration                    deny,log        (22)any_vrf_any_deny   (implicit)implicit                        
+4120 any                                                any                                                uni-dir        enabled tn-vivdalvi511131/ctx-opencart_vrf          deny,log        (21)any_any_any        (implicit)implicit                        
+4121 any                                                any                                                uni-dir        enabled tn-vivdalvi511131/ctx-opencart_vrf          permit          (17)any_any_filter     (implarp)implarp                         
+4122 any                                                ext-0.0.0.0/0                                      uni-dir        enabled tn-vivdalvi511131/ctx-opencart_vrf          deny,log        (22)any_vrf_any_deny   (implicit)implicit                        
+4123 any                                                tn-iSCSI/BD-iSCSI-B                                uni-dir        enabled tn-iSCSI/ctx-iSCSI                          permit          (16)any_dest_any       (implicit)implicit                        
+4124 tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt ext-0.0.0.0/0                                      uni-dir        enabled tn-common/ctx-VRF_Common                    permit          (09)src_dst_any        (default)default                         
+4150 tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt int-shrsvc                                         uni-dir        enabled tn-common/ctx-VRF_Common                    permit_override (09)src_dst_any        (implicit)implicit                        
+4168 tn-common/out-Tetration_L3Out/instP-Tetration-Mgmt tn-mgmt/mgmtp-default/inb-default                  uni-dir-ignore enabled tn-common/ctx-VRF_Common                    permit          (09)src_dst_any        (default)uni/tn-common/brc-L3_Out_default
 
 
-2020-08-26 01:32:23.816042
+2020-08-27 13:17:04.104825
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -155,7 +155,6 @@ python contractchecker.py -t Tenant1 -c C1 1 101
 #### Output example
 ```text
 % python contractchecker.py 1 102 -t mgmt -c SE-INB
-Working: (-)
 ################### Contract: uni/tn-mgmt/brc-SE-INB ###################
 
 Consumers: 
@@ -171,10 +170,14 @@ uni/tn-mgmt/brc-SE-INB/subj-SE-INB:['uni/tn-common/flt-default']
 
 ################### Rules in node: rules/pod-1/node-102 ###################
 
-id   Source                                Destination                           Direction      State   VRF             Action          Prio            Filter-Contract
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-4158 tn-mgmt/mgmtp-default/inb-default     tn-mgmt/ap-se-data-ap/epg-se-data-epg bi-dir         enabled tn-mgmt/ctx-inb permit          (09)src_dst_any (default)mgmt:SE-INB    
-4132 tn-mgmt/ap-se-data-ap/epg-se-data-epg tn-mgmt/mgmtp-default/inb-default     uni-dir-ignore enabled tn-mgmt/ctx-inb permit          (09)src_dst_any (default)mgmt:SE-INB 
+id   Source                                Destination                           Direction      State   VRF             Action          Prio            Filter-Contract   
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4158 tn-mgmt/mgmtp-default/inb-default     tn-mgmt/ap-se-data-ap/epg-se-data-epg bi-dir         enabled tn-mgmt/ctx-inb permit          (09)src_dst_any (default)uni/tn-mgmt/brc-SE-INB
+4132 tn-mgmt/ap-se-data-ap/epg-se-data-epg tn-mgmt/mgmtp-default/inb-default     uni-dir-ignore enabled tn-mgmt/ctx-inb permit          (09)src_dst_any (default)uni/tn-mgmt/brc-SE-INB
+
+
+2020-08-27 13:18:23.903802
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
 ##### Notes
@@ -244,6 +247,31 @@ totalCount:
 (-d 2)
 ##### Output example
 ```text
+Debug output CODE get_contracts_info -> (url=https://apic.svpod.dc-01.com/api/node/mo/uni/tn-mgmt/brc-SE-INB.json, query_target=None, target-subtree-class=None, query-target-filter=None, page-size=2000, page=0): 
+200
+totalCount: 
+"1"
+get_contracts_info response aggregated lenght:
+1
+get_contracts_info response lenght:
+1
+get_contracts_info response aggregated lenght:
+1
+Debug output CODE get_contracts_info -> (url=https://apic.svpod.dc-01.com/api/node/mo/uni/tn-mgmt/brc-SE-INB.json, query_target=children, target-subtree-class=vzRtCons, query-target-filter=None, page-size=2000, page=0): 
+200
+totalCount: 
+"2"
+get_contracts_info response aggregated lenght:
+2
+get_contracts_info response lenght:
+2
+get_contracts_info response aggregated lenght:
+2
+Debug output CODE get_contracts_info -> (url=https://apic.svpod.dc-01.com/api/node/mo/uni/tn-mgmt/brc-SE-INB.json, query_target=children, target-subtree-class=vzRtProv, query-target-filter=None, page-size=2000, page=0): 
+200
+
+<..omitted..>
+
 VRFs: 
 {
 <..omitted..>
@@ -304,6 +332,37 @@ Contracts:
         }
     }
 }
+Filter Info: 
+[
+    {
+        "vzRsRFltAtt": {
+            "attributes": {
+                "action": "permit",
+                "childAction": "",
+                "direction": "bidir",
+                "dn": "topology/pod-1/node-102/local/svc-policyelem-id-0/cdef-[uni/tn-mgmt/brc-SE-INB]/epgCont-[uni/tn-mgmt/mgmtp-default/inb-default]/fr-[uni/tn-mgmt/brc-SE-INB/dirass/cons-[uni/tn-mgmt/mgmtp-default/inb-default]-any-no]/to-[uni/tn-mgmt/brc-SE-INB/dirass/prov-[uni/tn-mgmt/ap-se-data-ap/epg-se-data-epg]-any-no]/rsrFltAtt-[uni/tn-common/fp-default]",
+                "forceResolve": "yes",
+                "isGraph": "no",
+                "lcOwn": "policy",
+                "markDscp": "unspecified",
+                "modTs": "2020-06-26T07:11:18.315+00:00",
+                "monPolDn": "",
+                "prio": "unspecified",
+                "priorityOverride": "default",
+                "rType": "mo",
+                "remoteMarkDscp": "unspecified",
+                "remotePrio": "unspecified",
+                "sdwanSlaDn": "",
+                "state": "formed",
+                "stateQual": "none",
+                "status": "",
+                "tCl": "vzAFilterableUnit",
+                "tDn": "uni/tn-common/fp-default",
+                "tType": "mo"
+            }
+        }
+    }
+]
 ```
 
 (-d 3) -> The json output of every response.
