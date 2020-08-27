@@ -112,7 +112,7 @@ def printt(string=None):
 # --------
 
 
-def update(d, u):
+def update(d, u) -> dict:
     for k, v in u.items():
         if isinstance(v, collections.abc.Mapping):
             d[k] = update(d.get(k, {}), v)
@@ -124,7 +124,7 @@ def update(d, u):
 # --------
 
 
-def count_elem(l, maxcount):
+def count_elem(l, maxcount) -> int:
     # Sum the count of repeated elements
     s = sum(Counter([list(elem)[0] for elem in l]).values())
     try:
@@ -239,13 +239,13 @@ def printable(d):
     ttable = transpose(table)
     lenSource = len(max(ttable[2], key=len))
     lenSource = lenSource if lenSource > 6 else 8
-    lenSource = lenSource if lenSource < 70 else 57
+    #lenSource = lenSource if lenSource < 70 else 57
     lenDest = len(max(ttable[3], key=len))
     lenDest = lenDest if lenDest > 11 else 13
-    lenDest = lenDest if lenDest < 70 else 57
+    #lenDest = lenDest if lenDest < 70 else 57
     lenVRF = len(max(ttable[6], key=len))
     lenVRF = lenVRF if lenVRF > 3 else 5
-    lenVRF = lenVRF if lenVRF < 70 else 57
+    #lenVRF = lenVRF if lenVRF < 70 else 57
     lenPrio = len(max(ttable[8], key=len))
     lenPrio = lenPrio if lenPrio > 4 else 10
     lenFilter = len(max(ttable[9], key=len))
@@ -318,7 +318,7 @@ def get_method(
         query_target=None,
         target_subtree_class=None,
         query_target_filter=None,
-        page=0):
+        page=0) -> list:
     token = apic_login()
     try:
         response = requests.get(
@@ -371,7 +371,7 @@ def get_method(
 # Get EPGs or VRFs#
 
 
-def get_node_objs(obj, filters=None) -> dict:
+def get_node_objs(obj, filters=None) -> list:
     url = APIC_URL + "/api/node/class/{}.json".format(obj)
     response = get_method(url, query_target_filter=filters)
     if response is not None:
@@ -402,7 +402,7 @@ def get_node_objs(obj, filters=None) -> dict:
 # Get Filters IDs
 
 
-def get_filterid(filterdn):
+def get_filterid(filterdn) -> list:
     url = APIC_URL + "/api/node/mo/{}".format(filterdn)
     response = get_method(
         url,
@@ -440,7 +440,7 @@ def get_filterid(filterdn):
 # Get zonin-rule from APIC of the desired switch
 
 
-def get_zoningrule(pod_id, node_id, query=None, subtree=None, filters=None):
+def get_zoningrule(pod_id, node_id, query=None, subtree=None, filters=None) -> list:
     url = APIC_URL + \
         "/api/node/class/topology/pod-{}/node-{}/actrlRule.json".format(pod_id, node_id)
     response = get_method(
@@ -486,7 +486,7 @@ def get_contracts_info(
         contract,
         query=None,
         subtree=None,
-        filters=None) -> dict:
+        filters=None) -> list:
     url = APIC_URL + \
         "/api/node/mo/uni/tn-{}/brc-{}.json".format(tenant, contract)
     response = get_method(
@@ -532,7 +532,7 @@ def get_subject_info(
         contract,
         subject,
         query=None,
-        filters=None) -> dict:
+        filters=None) -> list:
     url = APIC_URL + \
         "/api/node/mo/uni/tn-{}/brc-{}/subj-{}.json".format(tenant, contract, subject)
     response = get_method(
@@ -569,12 +569,86 @@ def get_subject_info(
         return []
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
+
+# Get info of the filters relations
+
+
+def get_filterinfo(pod_id, node_id, filters=None) -> list:
+    url = APIC_URL + \
+        "/api/node/class/topology/pod-{}/node-{}/vzRsRFltAtt.json".format(pod_id, node_id)
+    response = get_method(
+        url,
+        query_target_filter=filters)
+    if response is not None:
+        aux = response.json()["imdata"]
+        i = 1
+        while count_elem(
+            aux, int(
+                response.json()["totalCount"])) < int(
+                response.json()["totalCount"]):  # len(aux)
+            # while response.json()["imdata"]!=[]:
+            response = get_method(
+                url,
+                query_target_filter=filters,
+                page=i)
+            aux = aux + response.json()["imdata"]
+            i = i + 1
+        debug(len(aux), "get_zoningrule response lenght:", 1)
+        if count_elem(
+            aux, int(
+                response.json()["totalCount"])) > int(
+                response.json()["totalCount"]):
+            printt(
+                "More elements ({}) than totalCount ({})".format(
+                    aux, response.json()["totalCount"]))
+        return aux
+    else:
+        return []
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+def get_l3extsubnet (filters) -> list:
+    url = APIC_URL + \
+        "/api/node/class/l3extSubnet.json"
+    response = get_method(
+        url,
+        query_target_filter=filters)
+    if response is not None:
+        aux = response.json()["imdata"]
+        i = 1
+        while count_elem(
+            aux, int(
+                response.json()["totalCount"])) < int(
+                response.json()["totalCount"]):  # len(aux)
+            # while response.json()["imdata"]!=[]:
+            response = get_method(
+                url,
+                query_target_filter=filters,
+                page=i)
+            aux = aux + response.json()["imdata"]
+            i = i + 1
+        debug(len(aux), "get_zoningrule response lenght:", 1)
+        if count_elem(
+            aux, int(
+                response.json()["totalCount"])) > int(
+                response.json()["totalCount"]):
+            printt(
+                "More elements ({}) than totalCount ({})".format(
+                    aux, response.json()["totalCount"]))
+        return aux
+    else:
+        return []
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------
 # EPGs functions
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
 def mapping_epg_pctag(obj, filters=None) -> dict:
     epgs = get_node_objs(obj, filters)
+    l3outsAny = get_l3extsubnet("eq(l3extSubnet.ip, \"0.0.0.0/0\")")
     if epgs is None:
         return None
     d_vrfs = get_vrf()  # TODO: filters
@@ -590,7 +664,7 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
             obj_id = "vzToEPg"
             ctx_id = "scopeId"
             epg_id = "epgDn"
-        elif "fvRtdEpP" in epg:
+        elif "fvRtdEpP" in epg:  #instP
             obj_id = "fvRtdEpP"
             ctx_id = "scopeId"
             epg_id = "epgPKey"
@@ -621,7 +695,7 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
         else:
             continue
 
-        if (obj_id == "vnsEPgDef"):  # Service Graph shadow EPG
+        if obj_id == "vnsEPgDef":  # Service Graph shadow EPG
             try:
                 ctx_name = re.findall(
                     r"(?<=S-\[).+?(?=\])",
@@ -661,6 +735,14 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
                         epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
                     d_epgs.update(
                         {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+##########################
+                if obj_id == "fvRtdEpP":     
+                    for l3outAny in l3outsAny:
+                        if re.search(epg[obj_id]["attributes"][epg_id],l3outAny["l3extSubnet"]["attributes"]["dn"]):
+                            #print(epg[obj_id]["attributes"][epg_id])
+                            d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update(
+                                {"15": "{}(0.0.0.0/0)".format(epg[obj_id]["attributes"][epg_id])})
+##########################
             except KeyError:
                 printt(
                     "Undef scope:{} -> epg: {} ".format(
@@ -744,7 +826,7 @@ def EPGs(filters=None) -> dict:
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
-def get_contract(tenant, contract):
+def get_contract(tenant, contract) -> dict:
     contracts = get_contracts_info(tenant, contract)
     if not bool(contracts):
         return None
@@ -769,7 +851,7 @@ def get_contract(tenant, contract):
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
-def mapping_zoningrule_contract(pod_id, node_id, tenant, contract):
+def mapping_zoningrule_contract(pod_id, node_id, tenant, contract) -> dict:
 
     rule_type = (
         "id",
@@ -845,41 +927,7 @@ def mapping_zoningrule_contract(pod_id, node_id, tenant, contract):
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
-def get_filterinfo(pod_id, node_id, filters=None):
-    url = APIC_URL + \
-        "/api/node/class/topology/pod-{}/node-{}/vzRsRFltAtt.json".format(pod_id, node_id)
-    # filters="and(wcard(actrlRule.dn,\"{}\"),wcard(actrlRule.dn,\"{}\"),wcard(actrlRule.dn,\"fp-{}\"))".format(cons,prov,fp)
-    response = get_method(
-        url,
-        query_target_filter=filters)
-    if response is not None:
-        aux = response.json()["imdata"]
-        i = 1
-        while count_elem(
-            aux, int(
-                response.json()["totalCount"])) < int(
-                response.json()["totalCount"]):  # len(aux)
-            # while response.json()["imdata"]!=[]:
-            response = get_method(
-                url,
-                query_target_filter=filters,
-                page=i)
-            aux = aux + response.json()["imdata"]
-            i = i + 1
-        debug(len(aux), "get_zoningrule response lenght:", 1)
-        if count_elem(
-            aux, int(
-                response.json()["totalCount"])) > int(
-                response.json()["totalCount"]):
-            printt(
-                "More elements ({}) than totalCount ({})".format(
-                    aux, response.json()["totalCount"]))
-        return aux
-    else:
-        return []
-
-
-def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
+def contract_rules(pod_id, node_id, tenant=None, contract=None) -> dict:  # prettify
     rtype = ("implicit", "implarp", "default")
     d_epgs = {}
     scopes = []
@@ -902,51 +950,102 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
             pod_id, node_id, "wcard(vzRsRFltAtt.dn, \"{}\")".format(brc))
     debug(d_epgs, "EPGs: ", 2)
     debug(d_contract, "Contracts: ", 2)
-    debug(d_fltInfo, "Filter Info: ", 2)
+    debug(d_fltInfo, "Filter Info: ", 3)
     for i in d_contract[node]:
         d_contract[node][i]["scopeId"] = d_epgs[d_contract[node][i]["scopeId"]]
+        #########################
+        #if d_contract[node][i]["sPcTag"] != "any":
+        #    try:
+        #        if d_contract[node][i]["sPcTag"] in pctags:  # reserved pcTag
+        #            if d_contract[node][i]["sPcTag"] == "15":
+        #                d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["scopeId"]]["15"]
+        #            else:
+        #                d_contract[node][i]["sPcTag"] = pctags[d_contract[node][i]["sPcTag"]]
+        #        else:
+        #            if d_contract[node][i]["sPcTag"].isdigit() and int(
+        #                    d_contract[node][i]["sPcTag"]) < 16386:  # pcTag Global
+        #                d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["sPcTag"]]
+        #            else:
+        #                d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node]
+        #                    [i]["scopeId"]][d_contract[node][i]["sPcTag"]]
+#
+        #    except KeyError:
+        #        printt(
+        #            "Key not found scopeId={} sPcTag={}".format(
+        #                d_contract[node][i]["scopeId"],
+        #                d_contract[node][i]["sPcTag"]))
+        #if d_contract[node][i]["dPcTag"] != "any":
+        #    try:
+        #        if d_contract[node][i]["dPcTag"] in pctags:   # reserved pcTag
+        #            if d_contract[node][i]["dPcTag"] == "15":
+        #                d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["scopeId"]]["15"]
+        #            else:
+        #                d_contract[node][i]["dPcTag"] = pctags[d_contract[node][i]["dPcTag"]]
+        #        else:
+        #            if d_contract[node][i]["dPcTag"].isdigit() and int(
+        #                    d_contract[node][i]["dPcTag"]) < 16386:  # pcTag Global
+        #                d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["dPcTag"]]
+        #            else:
+        #                d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node]
+        #                    [i]["scopeId"]][d_contract[node][i]["dPcTag"]]
+        #    except KeyError:
+        #        printt(
+        #            "Key not found scopeId={} dPcTag={}".format(
+        #                d_contract[node][i]["scopeId"],
+        #                d_contract[node][i]["dPcTag"]))
+        ###########
         if d_contract[node][i]["sPcTag"] != "any":
-            try:
-                if d_contract[node][i]["sPcTag"] in pctags:  # reserved pcTag
+            #try:
+            if d_contract[node][i]["sPcTag"] in pctags:  # reserved pcTag
+                #if d_contract[node][i]["sPcTag"] == "15":
+                try:
+                    d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["scopeId"]]["15"]
+                #else:
+                except KeyError:
                     d_contract[node][i]["sPcTag"] = pctags[d_contract[node][i]["sPcTag"]]
+            else:
+                if d_contract[node][i]["sPcTag"].isdigit() and int(
+                        d_contract[node][i]["sPcTag"]) < 16386:  # pcTag Global
+                    d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["sPcTag"]]
                 else:
-                    if d_contract[node][i]["sPcTag"].isdigit() and int(
-                            d_contract[node][i]["sPcTag"]) < 16386:  # pcTag Global
-                        d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["sPcTag"]]
-                    else:
-                        d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node]
-                            [i]["scopeId"]][d_contract[node][i]["sPcTag"]]
+                    d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node]
+                        [i]["scopeId"]][d_contract[node][i]["sPcTag"]]
 
-            except KeyError:
-                printt(
-                    "Key not found scopeId={} sPcTag={}".format(
-                        d_contract[node][i]["scopeId"],
-                        d_contract[node][i]["sPcTag"]))
+            #except KeyError:
+            #    printt(
+            #        "Key not found scopeId={} sPcTag={}".format(
+            #            d_contract[node][i]["scopeId"],
+            #            d_contract[node][i]["sPcTag"]))
         if d_contract[node][i]["dPcTag"] != "any":
-            try:
-                if d_contract[node][i]["dPcTag"] in pctags:
+            #try:
+            if d_contract[node][i]["dPcTag"] in pctags:   # reserved pcTag
+                #if d_contract[node][i]["dPcTag"] == "15":
+                try:
+                    d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["scopeId"]]["15"]
+                #else:
+                except KeyError:
                     d_contract[node][i]["dPcTag"] = pctags[d_contract[node][i]["dPcTag"]]
+            else:
+                if d_contract[node][i]["dPcTag"].isdigit() and int(
+                        d_contract[node][i]["dPcTag"]) < 16386:  # pcTag Global
+                    d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["dPcTag"]]
                 else:
-                    if d_contract[node][i]["dPcTag"].isdigit() and int(
-                            d_contract[node][i]["dPcTag"]) < 16386:  # pcTag Global
-                        d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["dPcTag"]]
-                    else:
-                        d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node]
-                            [i]["scopeId"]][d_contract[node][i]["dPcTag"]]
-            except KeyError:
-                printt(
-                    "Key not found scopeId={} dPcTag={}".format(
-                        d_contract[node][i]["scopeId"],
-                        d_contract[node][i]["dPcTag"]))
-
-        if d_contract[node][i]["fltName"] in rtype:  # Default filter management
+                    d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node]
+                        [i]["scopeId"]][d_contract[node][i]["dPcTag"]]
+            #except KeyError:
+            #    printt(
+            #        "Key not found scopeId={} dPcTag={}".format(
+            #            d_contract[node][i]["scopeId"],
+            #            d_contract[node][i]["dPcTag"]))
+        ############
+        if d_contract[node][i]["fltName"] in rtype or d_contract[node][i]["fltName"] == d_contract[node][i]["fltId"]:  # Default filter management
             for fltInfo in d_fltInfo:
                 f = fltInfo["vzRsRFltAtt"]["attributes"]["dn"]
                 try:
                     if re.search(
-                        d_contract[node][i]["sPcTag"],
+                        d_contract[node][i]["sPcTag"].replace("(0.0.0.0/0)", ""),
                         f) and re.search(
-                        d_contract[node][i]["dPcTag"],
+                        d_contract[node][i]["dPcTag"].replace("(0.0.0.0/0)", ""),
                         f) and re.search(
                         d_contract[node][i]["fltId"],
                             f):
@@ -977,6 +1076,9 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None):  # prettify
             del d_contract[node][i]
 
     return d_contract
+
+#def insp_mapping(c, e):
+
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 # MAIN args parser
