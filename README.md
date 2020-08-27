@@ -44,7 +44,7 @@ For simplicity the script is prepared to read the APIC information from a file i
 ```text
 URL="https://sandboxapicdc.cisco.com"
 USERNAME = "admin"
-PASS = "password"
+PASS = "ciscopsdt"
 ```
 
 In the case that the file doesn't exist or a parameter is absent, the script will ask the parameter in runtime.
