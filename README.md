@@ -216,7 +216,7 @@ optional arguments:
 
 (-l) -> Log file in the same folder with the name ***"debuglog.json"*** :open_file_folder:
 
-(-d 1)
+(-d 1)	-> debug level 1 (lowest)
 ##### Output example
 ```text
 Debug output CODE get_contracts_info -> (url=https://sandboxapicdc.cisco.com/api/node/mo/uni/tn-common/brc-sql.json, query_target=None, target-subtree-class=None, query-target-filter=None, page-size=2000, page=0): 
@@ -245,7 +245,7 @@ totalCount:
 "1"
 ```
 
-(-d 2)
+(-d 2) -> debug level 2 
 ##### Output example
 ```text
 Debug output CODE get_contracts_info -> (url=https://apic.svpod.dc-01.com/api/node/mo/uni/tn-mgmt/brc-SE-INB.json, query_target=None, target-subtree-class=None, query-target-filter=None, page-size=2000, page=0): 
