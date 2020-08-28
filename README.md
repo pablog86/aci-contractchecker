@@ -52,7 +52,7 @@ In the case that the file doesn't exist or a parameter is absent, the script wil
 
 ### Get all zoning rules in the leaf 
 
-Get the zoning rules in the desired leaf using the APIC APIs.
+Get the zoning rules in the desired leaf using the APIC APIs, and orders it by priority.
 
 :computer: Example for pod-1 node-102:
 ```text
