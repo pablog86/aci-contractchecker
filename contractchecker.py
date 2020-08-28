@@ -17,7 +17,6 @@ import collections.abc
 import sys
 import os
 import re
-#from numpy import transpose
 import numpy as np
 from itertools import cycle
 import inspect
