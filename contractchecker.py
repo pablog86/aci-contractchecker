@@ -17,7 +17,8 @@ import collections.abc
 import sys
 import os
 import re
-from numpy import transpose
+#from numpy import transpose
+import numpy as np
 from itertools import cycle
 import inspect
 from collections import Counter
@@ -235,8 +236,9 @@ def printable(d):
         table[i].append(v1["prio"])
         table[i].append(v1["fltName"])
         table[i].append(v1["fltId"])
+        table[i].append(int(priorities[v1["prio"]]))
         i = i + 1
-    ttable = transpose(table)
+    ttable = np.transpose(table)
     lenSource = len(max(ttable[2], key=len))
     lenSource = lenSource if lenSource > 6 else 8
     #lenSource = lenSource if lenSource < 70 else 57
@@ -250,6 +252,9 @@ def printable(d):
     lenPrio = lenPrio if lenPrio > 4 else 10
     lenFilter = len(max(ttable[9], key=len))
     lenFilter = lenFilter if lenFilter > 15 else 15
+
+    matrix = np.array(table)
+    table=matrix[np.argsort(matrix[:,11].astype(int))].tolist() #Order by priority
     # id     #Src   #Dst  #Dir   #sts  #VRF   #Act   #Prio  #F-C
     printt(
         "{:<4} {:<{}} {:<{}} {:<14} {:<7} {:<{}} {:<15} {:<{}} {:<{}}".format(
@@ -287,7 +292,7 @@ def printable(d):
                 "Filter-Contract",
                 lenFilter)))
     for line in table:
-        index, iD, sPcTag, dPcTag, direction, operSt, scopeId, action, prio, fltName, fltId = line
+        index, iD, sPcTag, dPcTag, direction, operSt, scopeId, action, prio, fltName, fltId, nprio = line
         printt(
             "{:<4} {:<{}} {:<{}} {:<14} {:<7} {:<{}} {:<15} ({:02d}){:<{}} ({}){:<{}}".format(
                 iD,
@@ -735,14 +740,12 @@ def mapping_epg_pctag(obj, filters=None) -> dict:
                         epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
                     d_epgs.update(
                         {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
-##########################
                 if obj_id == "fvRtdEpP":     
                     for l3outAny in l3outsAny:
                         if re.search(epg[obj_id]["attributes"][epg_id],l3outAny["l3extSubnet"]["attributes"]["dn"]):
                             #print(epg[obj_id]["attributes"][epg_id])
                             d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update(
                                 {"15": "{}(0.0.0.0/0)".format(epg[obj_id]["attributes"][epg_id])})
-##########################
             except KeyError:
                 printt(
                     "Undef scope:{} -> epg: {} ".format(
@@ -953,54 +956,11 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None) -> dict:  # pret
     debug(d_fltInfo, "Filter Info: ", 3)
     for i in d_contract[node]:
         d_contract[node][i]["scopeId"] = d_epgs[d_contract[node][i]["scopeId"]]
-        #########################
-        #if d_contract[node][i]["sPcTag"] != "any":
-        #    try:
-        #        if d_contract[node][i]["sPcTag"] in pctags:  # reserved pcTag
-        #            if d_contract[node][i]["sPcTag"] == "15":
-        #                d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["scopeId"]]["15"]
-        #            else:
-        #                d_contract[node][i]["sPcTag"] = pctags[d_contract[node][i]["sPcTag"]]
-        #        else:
-        #            if d_contract[node][i]["sPcTag"].isdigit() and int(
-        #                    d_contract[node][i]["sPcTag"]) < 16386:  # pcTag Global
-        #                d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["sPcTag"]]
-        #            else:
-        #                d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node]
-        #                    [i]["scopeId"]][d_contract[node][i]["sPcTag"]]
-#
-        #    except KeyError:
-        #        printt(
-        #            "Key not found scopeId={} sPcTag={}".format(
-        #                d_contract[node][i]["scopeId"],
-        #                d_contract[node][i]["sPcTag"]))
-        #if d_contract[node][i]["dPcTag"] != "any":
-        #    try:
-        #        if d_contract[node][i]["dPcTag"] in pctags:   # reserved pcTag
-        #            if d_contract[node][i]["dPcTag"] == "15":
-        #                d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["scopeId"]]["15"]
-        #            else:
-        #                d_contract[node][i]["dPcTag"] = pctags[d_contract[node][i]["dPcTag"]]
-        #        else:
-        #            if d_contract[node][i]["dPcTag"].isdigit() and int(
-        #                    d_contract[node][i]["dPcTag"]) < 16386:  # pcTag Global
-        #                d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["dPcTag"]]
-        #            else:
-        #                d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node]
-        #                    [i]["scopeId"]][d_contract[node][i]["dPcTag"]]
-        #    except KeyError:
-        #        printt(
-        #            "Key not found scopeId={} dPcTag={}".format(
-        #                d_contract[node][i]["scopeId"],
-        #                d_contract[node][i]["dPcTag"]))
-        ###########
+ 
         if d_contract[node][i]["sPcTag"] != "any":
-            #try:
             if d_contract[node][i]["sPcTag"] in pctags:  # reserved pcTag
-                #if d_contract[node][i]["sPcTag"] == "15":
                 try:
                     d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["scopeId"]]["15"]
-                #else:
                 except KeyError:
                     d_contract[node][i]["sPcTag"] = pctags[d_contract[node][i]["sPcTag"]]
             else:
@@ -1011,18 +971,10 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None) -> dict:  # pret
                     d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node]
                         [i]["scopeId"]][d_contract[node][i]["sPcTag"]]
 
-            #except KeyError:
-            #    printt(
-            #        "Key not found scopeId={} sPcTag={}".format(
-            #            d_contract[node][i]["scopeId"],
-            #            d_contract[node][i]["sPcTag"]))
         if d_contract[node][i]["dPcTag"] != "any":
-            #try:
             if d_contract[node][i]["dPcTag"] in pctags:   # reserved pcTag
-                #if d_contract[node][i]["dPcTag"] == "15":
                 try:
                     d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["scopeId"]]["15"]
-                #else:
                 except KeyError:
                     d_contract[node][i]["dPcTag"] = pctags[d_contract[node][i]["dPcTag"]]
             else:
@@ -1032,12 +984,7 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None) -> dict:  # pret
                 else:
                     d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node]
                         [i]["scopeId"]][d_contract[node][i]["dPcTag"]]
-            #except KeyError:
-            #    printt(
-            #        "Key not found scopeId={} dPcTag={}".format(
-            #            d_contract[node][i]["scopeId"],
-            #            d_contract[node][i]["dPcTag"]))
-        ############
+   
         if d_contract[node][i]["fltName"] in rtype or d_contract[node][i]["fltName"] == d_contract[node][i]["fltId"]:  # Default filter management
             for fltInfo in d_fltInfo:
                 f = fltInfo["vzRsRFltAtt"]["attributes"]["dn"]
@@ -1076,8 +1023,6 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None) -> dict:  # pret
             del d_contract[node][i]
 
     return d_contract
-
-#def insp_mapping(c, e):
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
