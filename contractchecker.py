@@ -73,10 +73,6 @@ pctags = {
 
 # ----------------------------------------------------------------------
 
-cache_vrf = []
-
-# ----------------------------------------------------------------------
-
 _debug = 0
 _debugLog = False
 _color_i = "\033[0;33;40m"
@@ -148,7 +144,7 @@ def count_elem(l, maxcount) -> int:
 w = cycle(("|", "/", "-", "\\"))
 
 
-def apic_login():
+def apic_login() -> str:
     print('Working: (%s)\r' % next(w), end="")
     token = ""
     err = ""
@@ -240,21 +236,18 @@ def printable(d):
     ttable = np.transpose(table)
     lenSource = len(max(ttable[2], key=len))
     lenSource = lenSource if lenSource > 6 else 8
-    #lenSource = lenSource if lenSource < 70 else 57
     lenDest = len(max(ttable[3], key=len))
     lenDest = lenDest if lenDest > 11 else 13
-    #lenDest = lenDest if lenDest < 70 else 57
     lenVRF = len(max(ttable[6], key=len))
     lenVRF = lenVRF if lenVRF > 3 else 5
-    #lenVRF = lenVRF if lenVRF < 70 else 57
     lenPrio = len(max(ttable[8], key=len))
     lenPrio = lenPrio if lenPrio > 4 else 10
     lenFilter = len(max(ttable[9], key=len))
     lenFilter = lenFilter if lenFilter > 15 else 15
 
     matrix = np.array(table)
-    table=matrix[np.argsort(matrix[:,11].astype(int))].tolist() #Order by priority
-    # id     #Src   #Dst  #Dir   #sts  #VRF   #Act   #Prio  #F-C
+    table = matrix[np.argsort(matrix[:, 11].astype(int))
+                   ].tolist()  # Order by priority
     printt(
         "{:<4} {:<{}} {:<{}} {:<14} {:<7} {:<{}} {:<15} {:<{}} {:<{}}".format(
             'id',
@@ -401,370 +394,25 @@ def get_node_objs(obj, filters=None) -> list:
     else:
         return []
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-
-# Get Filters IDs
-
-
-def get_filterid(filterdn) -> list:
-    url = APIC_URL + "/api/node/mo/{}".format(filterdn)
-    response = get_method(
-        url,
-        query_target="children",
-        target_subtree_class="vzRsRFltPOwner")
-    if response is not None:
-        aux = response.json()["imdata"]
-        i = 1
-        while count_elem(
-            aux, int(
-                response.json()["totalCount"])) < int(
-                response.json()["totalCount"]):  # len(aux)
-            # while response.json()["imdata"]!=[]:
-            response = get_method(
-                url,
-                query_target="children",
-                target_subtree_class="vzRsRFltPOwner",
-                page=i)
-            aux = aux + response.json()["imdata"]
-            i = i + 1
-        debug(len(aux), "get_filterid response lenght:", 1)
-        if count_elem(
-            aux, int(
-                response.json()["totalCount"])) > int(
-                response.json()["totalCount"]):
-            printt(
-                "More elements ({}) than totalCount ({})".format(
-                    aux, response.json()["totalCount"]))
-        return aux
-    else:
-        return []
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
-
-# Get zonin-rule from APIC of the desired switch
-
-
-def get_zoningrule(pod_id, node_id, query=None, subtree=None, filters=None) -> list:
-    url = APIC_URL + \
-        "/api/node/class/topology/pod-{}/node-{}/actrlRule.json".format(pod_id, node_id)
-    response = get_method(
-        url,
-        query_target=query,
-        target_subtree_class=subtree,
-        query_target_filter=filters)
-    if response is not None:
-        aux = response.json()["imdata"]
-        i = 1
-        while count_elem(
-            aux, int(
-                response.json()["totalCount"])) < int(
-                response.json()["totalCount"]):  # len(aux)
-            # while response.json()["imdata"]!=[]:
-            response = get_method(
-                url,
-                query_target=query,
-                target_subtree_class=subtree,
-                query_target_filter=filters,
-                page=i)
-            aux = aux + response.json()["imdata"]
-            i = i + 1
-        debug(len(aux), "get_zoningrule response lenght:", 1)
-        if count_elem(
-            aux, int(
-                response.json()["totalCount"])) > int(
-                response.json()["totalCount"]):
-            printt(
-                "More elements ({}) than totalCount ({})".format(
-                    aux, response.json()["totalCount"]))
-        return aux
-    else:
-        return []
-
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-
-# Get contract info
-
-
-def get_contracts_info(
-        tenant,
-        contract,
-        query=None,
-        subtree=None,
-        filters=None) -> list:
-    url = APIC_URL + \
-        "/api/node/mo/uni/tn-{}/brc-{}.json".format(tenant, contract)
-    response = get_method(
-        url,
-        query_target=query,
-        target_subtree_class=subtree,
-        query_target_filter=filters)
-    if response is not None:
-        aux = response.json()["imdata"]
-        i = 1
-        while count_elem(
-            aux, int(
-                response.json()["totalCount"])) < int(
-                response.json()["totalCount"]):  # len(aux)
-            # while response.json()["imdata"]!=[]:
-            response = get_method(
-                url,
-                query_target=query,
-                target_subtree_class=subtree,
-                query_target_filter=filters,
-                page=i)
-            aux = aux + response.json()["imdata"]
-            i = i + 1
-        debug(len(aux), "get_contracts_info response lenght:", 1)
-        if count_elem(
-            aux, int(
-                response.json()["totalCount"])) > int(
-                response.json()["totalCount"]):
-            printt(
-                "More elements ({}) than totalCount ({})".format(
-                    aux, response.json()["totalCount"]))
-        return aux
-    else:
-        return []
-
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-
-# Get info of the subjects
-
-
-def get_subject_info(
-        tenant,
-        contract,
-        subject,
-        query=None,
-        filters=None) -> list:
-    url = APIC_URL + \
-        "/api/node/mo/uni/tn-{}/brc-{}/subj-{}.json".format(tenant, contract, subject)
-    response = get_method(
-        url,
-        query_target="children",
-        target_subtree_class="vzRsSubjFiltAtt",
-        query_target_filter=filters)
-    if response is not None:
-        aux = response.json()["imdata"]
-        i = 1
-        while count_elem(
-            aux, int(
-                response.json()["totalCount"])) < int(
-                response.json()["totalCount"]):  # len(aux)
-            # while response.json()["imdata"]!=[]:
-            response = get_method(
-                url,
-                query_target="children",
-                target_subtree_class="vzRsSubjFiltAtt",
-                query_target_filter=filters,
-                page=i)
-            aux = aux + response.json()["imdata"]
-            i = i + 1
-        debug(len(aux), "get_subject_info response lenght:", 1)
-        if count_elem(
-            aux, int(
-                response.json()["totalCount"])) > int(
-                response.json()["totalCount"]):
-            printt(
-                "More elements ({}) than totalCount ({})".format(
-                    aux, response.json()["totalCount"]))
-        return aux
-    else:
-        return []
-
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-
-# Get info of the filters relations
-
-
-def get_filterinfo(pod_id, node_id, filters=None) -> list:
-    url = APIC_URL + \
-        "/api/node/class/topology/pod-{}/node-{}/vzRsRFltAtt.json".format(pod_id, node_id)
-    response = get_method(
-        url,
-        query_target_filter=filters)
-    if response is not None:
-        aux = response.json()["imdata"]
-        i = 1
-        while count_elem(
-            aux, int(
-                response.json()["totalCount"])) < int(
-                response.json()["totalCount"]):  # len(aux)
-            # while response.json()["imdata"]!=[]:
-            response = get_method(
-                url,
-                query_target_filter=filters,
-                page=i)
-            aux = aux + response.json()["imdata"]
-            i = i + 1
-        debug(len(aux), "get_zoningrule response lenght:", 1)
-        if count_elem(
-            aux, int(
-                response.json()["totalCount"])) > int(
-                response.json()["totalCount"]):
-            printt(
-                "More elements ({}) than totalCount ({})".format(
-                    aux, response.json()["totalCount"]))
-        return aux
-    else:
-        return []
-
-
+# VRFs class
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
-def get_l3extsubnet (filters) -> list:
-    url = APIC_URL + \
-        "/api/node/class/l3extSubnet.json"
-    response = get_method(
-        url,
-        query_target_filter=filters)
-    if response is not None:
-        aux = response.json()["imdata"]
-        i = 1
-        while count_elem(
-            aux, int(
-                response.json()["totalCount"])) < int(
-                response.json()["totalCount"]):  # len(aux)
-            # while response.json()["imdata"]!=[]:
-            response = get_method(
-                url,
-                query_target_filter=filters,
-                page=i)
-            aux = aux + response.json()["imdata"]
-            i = i + 1
-        debug(len(aux), "get_zoningrule response lenght:", 1)
-        if count_elem(
-            aux, int(
-                response.json()["totalCount"])) > int(
-                response.json()["totalCount"]):
-            printt(
-                "More elements ({}) than totalCount ({})".format(
-                    aux, response.json()["totalCount"]))
-        return aux
-    else:
-        return []
+class VRFs (object):
+    __objTypeVrf = "fvCtx"
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-# EPGs functions
-# ---------------------------------------------------------------------------------------------------------------------------------------------
+    def __init__(self, filters=None):
+        self. filters = filters
+        self.d_vrfs = {}
 
+        self.get_vrf()
 
-def mapping_epg_pctag(obj, filters=None) -> dict:
-    epgs = get_node_objs(obj, filters)
-    l3outsAny = get_l3extsubnet("eq(l3extSubnet.ip, \"0.0.0.0/0\")")
-    if epgs is None:
-        return None
-    d_vrfs = get_vrf()  # TODO: filters
-    if not bool(d_vrfs):  # Check empty dict
-        return None
-    d_epgs = {}
-    for epg in epgs:
-        if "fvEpP" in epg:
-            obj_id = "fvEpP"
-            ctx_id = "scopeId"
-            epg_id = "epgPKey"
-        elif "vzToEPg" in epg:
-            obj_id = "vzToEPg"
-            ctx_id = "scopeId"
-            epg_id = "epgDn"
-        elif "fvRtdEpP" in epg:  #instP
-            obj_id = "fvRtdEpP"
-            ctx_id = "scopeId"
-            epg_id = "epgPKey"
-        elif "fvInBEpP" in epg:
-            obj_id = "fvInBEpP"
-            ctx_id = "scopeId"
-            epg_id = "epgPKey"
-        elif "fvOoBEpP" in epg:
-            obj_id = "fvOoBEpP"
-            ctx_id = "scopeId"
-            epg_id = "epgPKey"
-        elif "fvBD" in epg:
-            obj_id = "fvBD"
-            ctx_id = "scope"
-            epg_id = "dn"
-        elif "fvBDDef" in epg:
-            obj_id = "fvBDDef"
-            ctx_id = "scope"
-            epg_id = "bdDn"
-        elif "fvAEPg" in epg:
-            obj_id = "fvAEPg"
-            ctx_id = "scope"
-            epg_id = "dn"
-        elif "vnsEPgDef" in epg:
-            obj_id = "vnsEPgDef"
-            ctx_id = "dn"
-            epg_id = "lIfCtxDn"
-        else:
-            continue
-
-        if obj_id == "vnsEPgDef":  # Service Graph shadow EPG
-            try:
-                ctx_name = re.findall(
-                    r"(?<=S-\[).+?(?=\])",
-                    epg[obj_id]["attributes"][ctx_id])[0]  # TODO: some SG doesnt inform ctx
-                d_epgs.update({d_vrfs[ctx_name]: ctx_name})
-                if ctx_name in d_epgs:
-                    d_epgs[ctx_name].update(
-                        {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
-                else:
-                    d_epgs[ctx_name] = {
-                        epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
-                    d_epgs[ctx_name].update({d_vrfs["{}-pctag".format(
-                        ctx_name)]: ctx_name}
-                    )
-                if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
-                        epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
-                    d_epgs.update(
-                        {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
-            except KeyError:
-                printt(
-                    "Undef scope:{} -> sg epg: {} ".format(
-                        ctx_name,
-                        epg[obj_id]["attributes"][epg_id]))
-        else:
-            try:
-                d_epgs.update({epg[obj_id]["attributes"][ctx_id]: d_vrfs[epg[obj_id]["attributes"][ctx_id]]})
-                if d_vrfs[epg[obj_id]["attributes"][ctx_id]] in d_epgs:
-                    d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update(
-                        {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
-                else:
-                    d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]] = {
-                        epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
-                    d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update({d_vrfs["{}-pctag".format(
-                        d_vrfs[epg[obj_id]["attributes"][ctx_id]])]: d_vrfs[epg[obj_id]["attributes"][ctx_id]]}
-                    )
-                if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
-                        epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
-                    d_epgs.update(
-                        {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
-                if obj_id == "fvRtdEpP":     
-                    for l3outAny in l3outsAny:
-                        if re.search(epg[obj_id]["attributes"][epg_id],l3outAny["l3extSubnet"]["attributes"]["dn"]):
-                            #print(epg[obj_id]["attributes"][epg_id])
-                            d_epgs[d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update(
-                                {"15": "{}(0.0.0.0/0)".format(epg[obj_id]["attributes"][epg_id])})
-            except KeyError:
-                printt(
-                    "Undef scope:{} -> epg: {} ".format(
-                        epg[obj_id]["attributes"][ctx_id],
-                        epg[obj_id]["attributes"][epg_id]))
-    d_epgs.update({"16777200": d_vrfs["16777200"]})  # black-hole
-    return d_epgs
-
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-
-# Get VRF #
-
-
-def get_vrf(filters=None) -> dict:
-    global cache_vrf
-    if len(cache_vrf) == 0 or filters is not None:
-        vrfs = get_node_objs("fvCtx", filters)  # fvACtx
+    def get_vrf(self):
+        vrfs = get_node_objs(self.__objTypeVrf, self.filters)  # fvACtx
         if vrfs is None:
             return None
-        d_vrfs = {}
         for vrf in vrfs:
             if "fvCtx" in vrf:
                 obj_id = "fvCtx"
@@ -783,128 +431,344 @@ def get_vrf(filters=None) -> dict:
                 pctag = "pcTag"
             else:
                 continue
-            d_vrfs.update({vrf[obj_id]["attributes"][scope_id]: vrf[obj_id]["attributes"][ctx_id]})
-            d_vrfs.update({vrf[obj_id]["attributes"][ctx_id]: vrf[obj_id]["attributes"][scope_id]})
-            d_vrfs.update(
+            self.d_vrfs.update(
+                {vrf[obj_id]["attributes"][scope_id]: vrf[obj_id]["attributes"][ctx_id]})
+            self.d_vrfs.update(
+                {vrf[obj_id]["attributes"][ctx_id]: vrf[obj_id]["attributes"][scope_id]})
+            self.d_vrfs.update(
                 {"{}-pctag".format(vrf[obj_id]["attributes"][ctx_id]): vrf[obj_id]["attributes"][pctag]})
-        d_vrfs.update({"16777200": "uni/tn-infra/black-hole"})
-        debug(d_vrfs, "VRFs: ", 2)
-        cache_vrf = d_vrfs.copy()
-        return d_vrfs
-    return cache_vrf
+        self.d_vrfs.update({"16777200": "uni/tn-infra/black-hole"})
+        debug(self.d_vrfs, "VRFs: ", 2)
 
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+# EPGs class
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
-def EPGs(filters=None) -> dict:
-    #epg_type = ("fvEpP.epgPKey","vzToEPg.epgPKey","fvAREpP.epgPKey","fvOoBEpP.epgPKey","fvInBEpP.epgPKey","fvABD.dn","fvAEPg.dn")
-    filter_type = {
+class EPGs (VRFs):
+
+    __epgsFilterType = {
         "ctx": "ctxDefDn",
         "epg": "epgPKey",
         "scope": "scopeId",
         "bd": "dn"}
-    epg_type = ("fvAREpP", "vzToEPg", "fvBD", "vnsEPgDef")  # fvABD
-    d_epgs = {}
-    if filters:
-        f = filters.split("/")
-        f = f[-1].split("-")[0]
-        if f == "scope":
-            filters = filters[6:]
-        for epg_t in epg_type:
-            aux = mapping_epg_pctag(
-                epg_t, "wcard({}.{}, \"{}\")".format(
-                    epg_t, filter_type[f], filters))
-            if aux is not None:
-                update(d_epgs, aux)
-    else:
-        for epg_t in epg_type:
-            aux = mapping_epg_pctag(epg_t)
-            if aux is not None:
-                update(d_epgs, aux)
-    return d_epgs
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-# Contracts & rules functions
-# ---------------------------------------------------------------------------------------------------------------------------------------------
+    __objTypeEpgs = ("fvAREpP", "vzToEPg", "fvBD", "vnsEPgDef")
 
+    def __init__(self, filters=[]):
+        VRFs.__init__(self)
+        self.filters = filters
+        self.d_epgs = {}
+        self.epgs()
 
-def get_contract(tenant, contract) -> dict:
-    contracts = get_contracts_info(tenant, contract)
-    if not bool(contracts):
-        return None
-    d_contract = {"dn": contracts[0]["vzBrCP"]["attributes"]["dn"]}
-    d_contract.update({"Consumers": []})
-    for c in get_contracts_info(tenant, contract, "children", "vzRtCons"):
-        d_contract["Consumers"].append(c["vzRtCons"]["attributes"]["tDn"])
-    d_contract.update({"Providers": []})
-    for c in get_contracts_info(tenant, contract, "children", "vzRtProv"):
-        d_contract["Providers"].append(c["vzRtProv"]["attributes"]["tDn"])
-    d_contract.update({"Subjects": {}})
-    for c in get_contracts_info(tenant, contract, "children", "vzSubj"):
-        d_contract["Subjects"].update({c["vzSubj"]["attributes"]["dn"]: []})
-        for s in get_subject_info(
-                tenant,
-                contract,
-                c["vzSubj"]["attributes"]["name"]):
-            d_contract["Subjects"][c["vzSubj"]["attributes"]["dn"]].append(
-                s["vzRsSubjFiltAtt"]["attributes"]["tDn"])
-    return d_contract
+    def epgs(self):
+        if len(self.filters) > 0:
+            for filte in self.filters:
+                f = filte.split("/")
+                f = f[-1].split("-")[0]
+                if f == "scope":
+                    filt = filte[6:]
+                for epg_t in self.__objTypeEpgs:
+                    self.mapping_epg_pctag(
+                        epg_t, "wcard({}.{}, \"{}\")".format(
+                            epg_t, self.__epgsFilterType[f], filt))
+        else:
+            for epg_t in self.__objTypeEpgs:
+                self.mapping_epg_pctag(epg_t)
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------
+    def mapping_epg_pctag(self, obj, filters=None):
 
+        epgs = get_node_objs(obj, filters)
+        if obj == "fvAREpP":
+            l3outsAny = self.get_l3extsubnet(
+                "eq(l3extSubnet.ip, \"0.0.0.0/0\")")
+        if epgs is None:
+            return
 
-def mapping_zoningrule_contract(pod_id, node_id, tenant, contract) -> dict:
-
-    rule_type = (
-        "id",
-        "sPcTag",
-        "dPcTag",
-        "fltId",
-        "direction",
-        "operSt",
-        "scopeId",
-        "action",
-        "prio")
-    rules = {}
-
-    if tenant is None or contract is None:  # All filters in the switch
-        zoningrules = get_zoningrule(pod_id, node_id)
-        d_contract = {}
-        for zoningrule in zoningrules:
-            rule = zoningrule["actrlRule"]["attributes"]["dn"]
-            rules.update({rule: {}})
-            for t in rule_type:
-                rules[rule].update(
-                    {t: zoningrule["actrlRule"]["attributes"][t]})
-            if zoningrule["actrlRule"]["attributes"]["ctrctName"] != "":
-                aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
-                    ":")
-                rules[rule].update(
-                    {"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
+        if not bool(self.d_vrfs):  # Check empty dict
+            return
+        for epg in epgs:
+            if "fvEpP" in epg:
+                obj_id = "fvEpP"
+                ctx_id = "scopeId"
+                epg_id = "epgPKey"
+            elif "vzToEPg" in epg:
+                obj_id = "vzToEPg"
+                ctx_id = "scopeId"
+                epg_id = "epgDn"
+            elif "fvRtdEpP" in epg:  # instP
+                obj_id = "fvRtdEpP"
+                ctx_id = "scopeId"
+                epg_id = "epgPKey"
+            elif "fvInBEpP" in epg:
+                obj_id = "fvInBEpP"
+                ctx_id = "scopeId"
+                epg_id = "epgPKey"
+            elif "fvOoBEpP" in epg:
+                obj_id = "fvOoBEpP"
+                ctx_id = "scopeId"
+                epg_id = "epgPKey"
+            elif "fvBD" in epg:
+                obj_id = "fvBD"
+                ctx_id = "scope"
+                epg_id = "dn"
+            elif "fvBDDef" in epg:
+                obj_id = "fvBDDef"
+                ctx_id = "scope"
+                epg_id = "bdDn"
+            elif "fvAEPg" in epg:
+                obj_id = "fvAEPg"
+                ctx_id = "scope"
+                epg_id = "dn"
+            elif "vnsEPgDef" in epg:
+                obj_id = "vnsEPgDef"
+                ctx_id = "dn"
+                epg_id = "lIfCtxDn"
             else:
-                rules[rule].update(
-                    {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
-        d_contract.update(
-            {"rules/pod-{}/node-{}".format(pod_id, node_id): rules})
+                continue
+            if obj_id == "vnsEPgDef":  # Service Graph shadow EPG
+                try:
+                    ctx_name = re.findall(
+                        r"(?<=S-\[).+?(?=\])",
+                        epg[obj_id]["attributes"][ctx_id])[0]  # TODO: some SG doesnt inform ctx
+                    self.d_epgs.update({self.d_vrfs[ctx_name]: ctx_name})
+                    if ctx_name in self.d_epgs:
+                        self.d_epgs[ctx_name].update(
+                            {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                    else:
+                        self.d_epgs[ctx_name] = {
+                            epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
+                        self.d_epgs[ctx_name].update(
+                            {self.d_vrfs["{}-pctag".format(ctx_name)]: ctx_name})
+                    if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
+                            epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
+                        self.d_epgs.update(
+                            {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                except KeyError:
+                    printt(
+                        "Undef scope:{} -> sg epg: {} ".format(
+                            ctx_name,
+                            epg[obj_id]["attributes"][epg_id]))
 
-    else:  # Filters matching the tenant/contract
-        d_contract = get_contract(tenant, contract)
-        if not bool(d_contract):
-            return None
-        zoningrules = get_zoningrule(
-            pod_id,
-            node_id,
-            filters="wcard(actrlRule.ctrctName,\"{}:{}\")".format(
-                tenant,
-                contract))
-        if zoningrules == []:
-            zoningrules = get_zoningrule(
-                pod_id,
-                node_id,
-                filters="wcard(actrlRule.fltId,\"default\")")
+            else:
+                try:
+                    self.d_epgs.update(
+                        {epg[obj_id]["attributes"][ctx_id]: self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]})
+                    if self.d_vrfs[epg[obj_id]["attributes"]
+                                   [ctx_id]] in self.d_epgs:
+                        self.d_epgs[self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update(
+                            {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                    else:
+                        self.d_epgs[self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]] = {
+                            epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
+                        self.d_epgs[self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update({self.d_vrfs["{}-pctag".format(
+                            self.d_vrfs[epg[obj_id]["attributes"][ctx_id]])]: self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]}
+                        )
+                    if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
+                            epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
+                        self.d_epgs.update(
+                            {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                    if obj_id == "fvRtdEpP":
+                        for l3outAny in l3outsAny:
+                            if re.search(
+                                    epg[obj_id]["attributes"][epg_id],
+                                    l3outAny["l3extSubnet"]["attributes"]["dn"]):
+                                self.d_epgs[self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update(
+                                    {"15": "{}(0.0.0.0/0)".format(epg[obj_id]["attributes"][epg_id])})
+                except KeyError:
+                    printt(
+                        "Undef scope:{} -> epg: {} ".format(
+                            epg[obj_id]["attributes"][ctx_id],
+                            epg[obj_id]["attributes"][epg_id]))
+        self.d_epgs.update({"16777200": self.d_vrfs["16777200"]})  # black-hole
 
-        if zoningrules != []:
-            for zoningrule in zoningrules:
+    def get_l3extsubnet(self, filters) -> list:
+        url = APIC_URL + \
+            "/api/node/class/l3extSubnet.json"
+        response = get_method(
+            url,
+            query_target_filter=filters)
+        if response is not None:
+            aux = response.json()["imdata"]
+            i = 1
+            while count_elem(
+                aux, int(
+                    response.json()["totalCount"])) < int(
+                    response.json()["totalCount"]):  # len(aux)
+                response = get_method(
+                    url,
+                    query_target_filter=filters,
+                    page=i)
+                aux = aux + response.json()["imdata"]
+                i = i + 1
+            debug(len(aux), "get_l3extsubnet response lenght:", 1)
+            if count_elem(
+                aux, int(
+                    response.json()["totalCount"])) > int(
+                    response.json()["totalCount"]):
+                printt(
+                    "More elements ({}) than totalCount ({})".format(
+                        aux, response.json()["totalCount"]))
+            return aux
+        else:
+            return []
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+# Contracts class
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+class Contracts (EPGs):
+
+    __rtype = ("implicit", "implarp", "default")
+
+    def __init__(self, pod_id, node_id, tenant=None, contract=None):
+        self.pod_id = pod_id
+        self.node_id = node_id
+        self.tenant = tenant
+        self.contract = contract
+
+        self.urlfilterinfo = APIC_URL + \
+            "/api/node/class/topology/pod-{}/node-{}/vzRsRFltAtt.json".format(self.pod_id, self.node_id)
+        self.urlzoningrule = APIC_URL + \
+            "/api/node/class/topology/pod-{}/node-{}/actrlRule.json".format(self.pod_id, self.node_id)
+        self.urlcontract = APIC_URL + \
+            "/api/node/mo/uni/tn-{}/brc-{}.json".format(self.tenant, self.contract)
+        self.urlsubject = APIC_URL + \
+            "/api/node/mo/uni/tn-{}/brc-{}/".format(self.tenant, self.contract)
+
+        self.__brc = "uni/tn-{}/brc-{}".format(tenant, contract)
+        self.filters = []
+        self.d_contract = {}
+
+        self.zoningrules = []
+        self.__scopes = []
+
+        self.mapping_zoningrule_contract()
+
+        if bool(self.d_contract):
+            self.node = "rules/pod-{}/node-{}".format(
+                self.pod_id, self.node_id)
+            for i in self.d_contract[self.node]:
+                self.__scopes.append(self.d_contract[self.node][i]["scopeId"])
+            self.__scopes = set(self.__scopes)
+
+        if tenant is None or contract is None:
+            EPGs.__init__(self)
+        else:
+            for scope in self.__scopes:
+                self.filters.append("scope-{}".format(scope))
+            EPGs.__init__(self, self.filters)
+        self.contract_rules()
+        debug(self.d_vrfs, "EPGs: ", 2)
+        debug(self.d_epgs, "EPGs: ", 2)
+        debug(self.d_contract, "Contracts: ", 2)
+
+    def contract_rules(self):
+
+        if not bool(self.d_contract):
+            return
+
+        if self.tenant is None or self.contract is None:
+            d_fltInfo = self.get_contracts_info(self.urlfilterinfo)
+        else:
+            d_fltInfo = self.get_contracts_info(
+                self.urlfilterinfo,
+                filters="wcard(vzRsRFltAtt.dn, \"{}\")".format(
+                    self.__brc))
+        debug(d_fltInfo, "Filter Info: ", 3)
+        for i in self.d_contract[self.node]:
+            self.d_contract[self.node][i]["scopeId"] = self.d_epgs[self.d_contract[self.node][i]["scopeId"]]
+
+            if self.d_contract[self.node][i]["sPcTag"] != "any":
+                if self.d_contract[self.node][i]["sPcTag"] in pctags:  # reserved pcTag
+                    try:
+                        self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node]
+                                                                              [i]["scopeId"]]["15"]
+                    except KeyError:
+                        self.d_contract[self.node][i]["sPcTag"] = pctags[self.d_contract[self.node][i]["sPcTag"]]
+                else:
+                    if self.d_contract[self.node][i]["sPcTag"].isdigit() and int(
+                            self.d_contract[self.node][i]["sPcTag"]) < 16386:  # pcTag Global
+                        self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node][i]["sPcTag"]]
+                    else:
+                        self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node]
+                                                                              [i]["scopeId"]][self.d_contract[self.node][i]["sPcTag"]]
+
+            if self.d_contract[self.node][i]["dPcTag"] != "any":
+                if self.d_contract[self.node][i]["dPcTag"] in pctags:   # reserved pcTag
+                    try:
+                        self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node]
+                                                                              [i]["scopeId"]]["15"]
+                    except KeyError:
+                        self.d_contract[self.node][i]["dPcTag"] = pctags[self.d_contract[self.node][i]["dPcTag"]]
+                else:
+                    if self.d_contract[self.node][i]["dPcTag"].isdigit() and int(
+                            self.d_contract[self.node][i]["dPcTag"]) < 16386:  # pcTag Global
+                        self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node][i]["dPcTag"]]
+                    else:
+                        self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node]
+                                                                              [i]["scopeId"]][self.d_contract[self.node][i]["dPcTag"]]
+            # Default filter management
+            if self.d_contract[self.node][i]["fltName"] in self.__rtype or self.d_contract[
+                    self.node][i]["fltName"] == self.d_contract[self.node][i]["fltId"]:
+                for fltInfo in d_fltInfo:
+                    f = fltInfo["vzRsRFltAtt"]["attributes"]["dn"]
+                    try:
+                        if re.search(
+                            self.d_contract[self.node][i]["sPcTag"].replace("(0.0.0.0/0)", ""),
+                            f) and re.search(
+                            self.d_contract[self.node][i]["dPcTag"].replace("(0.0.0.0/0)", ""),
+                            f) and re.search(
+                            self.d_contract[self.node][i]["fltId"],
+                                f):
+                            aux = re.findall(
+                                r"(?<=/cdef-\[).+?(?=\])",
+                                fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
+                            if aux is not None:
+                                self.d_contract[self.node][i]["fltName"] = aux
+                    except BaseException:
+                        debug(
+                            "re.search error (bad character range n-a), sPcTag: {},  dPcTag: {}, fltId: {}".format(
+                                self.d_contract[self.node][i]["sPcTag"],
+                                self.d_contract[self.node][i]["dPcTag"],
+                                self.d_contract[self.node][i]["fltId"]),
+                            level=1)
+                        if f == "default":
+                            aux = re.findall(
+                                r"(?<=/cdef-\[).+?(?=\])",
+                                fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
+                            if aux is not None:
+
+                                self.d_contract[self.node][i]["fltName"] = aux
+
+        # Default filter management purge | TODO: improve this!
+        if self.tenant is not None or self.contract is not None:
+            r = []
+            for i in self.d_contract[self.node]:
+                if self.d_contract[self.node][i]["fltName"] != self.__brc:
+                    r.append(i)
+            for i in r:
+                del self.d_contract[self.node][i]
+
+    def mapping_zoningrule_contract(self):
+
+        rule_type = (
+            "id",
+            "sPcTag",
+            "dPcTag",
+            "fltId",
+            "direction",
+            "operSt",
+            "scopeId",
+            "action",
+            "prio")
+        rules = {}
+
+        if self.tenant is None or self.contract is None:  # All filters in the switch
+            self.zoningrules = self.get_contracts_info(self.urlzoningrule)
+            for zoningrule in self.zoningrules:
                 rule = zoningrule["actrlRule"]["attributes"]["dn"]
                 rules.update({rule: {}})
                 for t in rule_type:
@@ -918,110 +782,110 @@ def mapping_zoningrule_contract(pod_id, node_id, tenant, contract) -> dict:
                 else:
                     rules[rule].update(
                         {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
-            d_contract.update(
-                {"rules/pod-{}/node-{}".format(pod_id, node_id): rules})
+            self.d_contract.update(
+                {"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): rules})
+
+        else:  # Filters matching the tenant/contract
+
+            self.get_contract()
+            # if not bool(self.d_contract):
+            #    return None
+            self.zoningrules = self.get_contracts_info(
+                self.urlzoningrule, filters="wcard(actrlRule.ctrctName,\"{}:{}\")".format(
+                    self.tenant, self.contract))
+            if self.zoningrules == []:
+                self.zoningrules = self.get_contracts_info(
+                    self.urlzoningrule, filters="wcard(actrlRule.fltId,\"default\")")
+            if self.zoningrules != []:
+                for zoningrule in self.zoningrules:
+                    rule = zoningrule["actrlRule"]["attributes"]["dn"]
+                    rules.update({rule: {}})
+                    for t in rule_type:
+                        rules[rule].update(
+                            {t: zoningrule["actrlRule"]["attributes"][t]})
+                    if zoningrule["actrlRule"]["attributes"]["ctrctName"] != "":
+                        aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
+                            ":")
+                        rules[rule].update(
+                            {"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
+                    else:
+                        rules[rule].update(
+                            {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
+                self.d_contract.update(
+                    {"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): rules})
+            else:
+                self.d_contract.update(
+                    {"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): {}})
+
+    def get_contract(self):
+        contracts = self.get_contracts_info(self.urlcontract)
+        if bool(contracts):
+            #    return None
+            self.d_contract = {
+                "dn": contracts[0]["vzBrCP"]["attributes"]["dn"]}
+            self.d_contract.update({"Consumers": []})
+            for c in self.get_contracts_info(
+                    self.urlcontract, "children", "vzRtCons"):
+                self.d_contract["Consumers"].append(
+                    c["vzRtCons"]["attributes"]["tDn"])
+            self.d_contract.update({"Providers": []})
+            for c in self.get_contracts_info(
+                    self.urlcontract, "children", "vzRtProv"):
+                self.d_contract["Providers"].append(
+                    c["vzRtProv"]["attributes"]["tDn"])
+            self.d_contract.update({"Subjects": {}})
+            for c in self.get_contracts_info(
+                    self.urlcontract, "children", "vzSubj"):
+                self.d_contract["Subjects"].update(
+                    {c["vzSubj"]["attributes"]["dn"]: []})
+                for s in self.get_contracts_info(
+                        self.urlsubject,
+                        query="children",
+                        subtree="vzRsSubjFiltAtt",
+                        subject=c["vzSubj"]["attributes"]["name"]):
+                    self.d_contract["Subjects"][c["vzSubj"]["attributes"]["dn"]].append(
+                        s["vzRsSubjFiltAtt"]["attributes"]["tDn"])
+
+    def get_contracts_info(
+            self,
+            url,
+            query=None,
+            subtree=None,
+            filters=None,
+            subject=None) -> list:
+        if subject:
+            url = url + "subj-{}.json".format(subject)
+        response = get_method(
+            url,
+            query_target=query,
+            target_subtree_class=subtree,
+            query_target_filter=filters)
+        if response is not None:
+            aux = response.json()["imdata"]
+            i = 1
+            while count_elem(
+                aux, int(
+                    response.json()["totalCount"])) < int(
+                    response.json()["totalCount"]):  # len(aux)
+                response = get_method(
+                    url,
+                    query_target=query,
+                    target_subtree_class=subtree,
+                    query_target_filter=filters,
+                    page=i)
+                aux = aux + response.json()["imdata"]
+                i = i + 1
+            debug(len(aux), "get_contracts_info response lenght:", 1)
+            if count_elem(
+                aux, int(
+                    response.json()["totalCount"])) > int(
+                    response.json()["totalCount"]):
+                printt(
+                    "More elements ({}) than totalCount ({})".format(
+                        aux, response.json()["totalCount"]))
+            return aux
         else:
-            d_contract.update(
-                {"rules/pod-{}/node-{}".format(pod_id, node_id): {}})
-
-    return d_contract
-
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-
-
-def contract_rules(pod_id, node_id, tenant=None, contract=None) -> dict:  # prettify
-    rtype = ("implicit", "implarp", "default")
-    d_epgs = {}
-    scopes = []
-    brc = None
-    d_contract = mapping_zoningrule_contract(pod_id, node_id, tenant, contract)
-    node = "rules/pod-{}/node-{}".format(pod_id, node_id)
-    if not bool(d_contract):
-        return None
-    for i in d_contract[node]:
-        scopes.append(d_contract[node][i]["scopeId"])
-    scopes = set(scopes)
-    if tenant is None or contract is None:
-        update(d_epgs, EPGs())
-        d_fltInfo = get_filterinfo(pod_id, node_id)
-    else:
-        for scope in scopes:
-            update(d_epgs, EPGs("scope-{}".format(scope)))
-        brc = "uni/tn-{}/brc-{}".format(tenant, contract)
-        d_fltInfo = get_filterinfo(
-            pod_id, node_id, "wcard(vzRsRFltAtt.dn, \"{}\")".format(brc))
-    debug(d_epgs, "EPGs: ", 2)
-    debug(d_contract, "Contracts: ", 2)
-    debug(d_fltInfo, "Filter Info: ", 3)
-    for i in d_contract[node]:
-        d_contract[node][i]["scopeId"] = d_epgs[d_contract[node][i]["scopeId"]]
- 
-        if d_contract[node][i]["sPcTag"] != "any":
-            if d_contract[node][i]["sPcTag"] in pctags:  # reserved pcTag
-                try:
-                    d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["scopeId"]]["15"]
-                except KeyError:
-                    d_contract[node][i]["sPcTag"] = pctags[d_contract[node][i]["sPcTag"]]
-            else:
-                if d_contract[node][i]["sPcTag"].isdigit() and int(
-                        d_contract[node][i]["sPcTag"]) < 16386:  # pcTag Global
-                    d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node][i]["sPcTag"]]
-                else:
-                    d_contract[node][i]["sPcTag"] = d_epgs[d_contract[node]
-                        [i]["scopeId"]][d_contract[node][i]["sPcTag"]]
-
-        if d_contract[node][i]["dPcTag"] != "any":
-            if d_contract[node][i]["dPcTag"] in pctags:   # reserved pcTag
-                try:
-                    d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["scopeId"]]["15"]
-                except KeyError:
-                    d_contract[node][i]["dPcTag"] = pctags[d_contract[node][i]["dPcTag"]]
-            else:
-                if d_contract[node][i]["dPcTag"].isdigit() and int(
-                        d_contract[node][i]["dPcTag"]) < 16386:  # pcTag Global
-                    d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node][i]["dPcTag"]]
-                else:
-                    d_contract[node][i]["dPcTag"] = d_epgs[d_contract[node]
-                        [i]["scopeId"]][d_contract[node][i]["dPcTag"]]
-   
-        if d_contract[node][i]["fltName"] in rtype or d_contract[node][i]["fltName"] == d_contract[node][i]["fltId"]:  # Default filter management
-            for fltInfo in d_fltInfo:
-                f = fltInfo["vzRsRFltAtt"]["attributes"]["dn"]
-                try:
-                    if re.search(
-                        d_contract[node][i]["sPcTag"].replace("(0.0.0.0/0)", ""),
-                        f) and re.search(
-                        d_contract[node][i]["dPcTag"].replace("(0.0.0.0/0)", ""),
-                        f) and re.search(
-                        d_contract[node][i]["fltId"],
-                            f):
-                        aux = re.findall(
-                            r"(?<=/cdef-\[).+?(?=\])",
-                            fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
-                        if aux is not None:
-                            d_contract[node][i]["fltName"] = aux
-                except BaseException:
-                    debug(
-                        "re.search error (bad character range n-a), sPcTag: {},  dPcTag: {}, fltId: {}".format(
-                            d_contract[node][i]["sPcTag"],
-                            d_contract[node][i]["dPcTag"],
-                            d_contract[node][i]["fltId"]),
-                        level=1)
-                    if f == "default":
-                        aux = re.findall(
-                            r"(?<=/cdef-\[).+?(?=\])",
-                            fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
-                        if aux is not None:
-                            d_contract[node][i]["fltName"] = aux
-    if brc:  # Default filter management purge | TODO: improve this!
-        r = []
-        for i in d_contract[node]:
-            if d_contract[node][i]["fltName"] != brc:
-                r.append(i)
-        for i in r:
-            del d_contract[node][i]
-
-    return d_contract
+            return []
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1030,11 +894,10 @@ def contract_rules(pod_id, node_id, tenant=None, contract=None) -> dict:  # pret
 # **********************************************************************************
 # Create an envs.py file with (eg):
 # URL="https://sandboxapicdc.cisco.com"
-#USERNAME = "admin"
-#PASS = "ciscopsdt"
+# USERNAME = "admin"
+# PASS = "ciscopsdt"
 # If there isn't a envs.py you can introduce the values in runtime
 # **********************************************************************************
-
 
 if __name__ == "__main__":
     import argparse
@@ -1129,16 +992,18 @@ the correct renderization of the policy.
     _debugLog = args.logfile
     print(APIC_URL)
     print(USERNAME)
+
     try:
         if args.tenant is None and args.contract is None:
-            printable(contract_rules(args.pod, args.node))
+            contract = Contracts(args.pod, args.node)
+            printable(contract.d_contract)
         else:
-            printable(
-                contract_rules(
-                    args.pod,
-                    args.node,
-                    args.tenant,
-                    args.contract))
+            contract = Contracts(args.pod,
+                                 args.node,
+                                 args.tenant,
+                                 args.contract)
+            printable(contract.d_contract)
+
         printt(datetime.now())
         printt("-" * 250)
     except KeyboardInterrupt:
