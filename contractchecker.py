@@ -30,7 +30,7 @@ warnings.simplefilter('ignore', InsecureRequestWarning)
 # **********************************************************************************
 verify_https = False  # Validate https certificate
 page_size = 2000  # Elements per page (low numbers may generate some issues)
-
+TOKEN = None
 # ----------------------------------------------------------------------
 
 priorities = {"class-eq-filter": 1,
@@ -202,7 +202,7 @@ def printable(d):
         for k, v in d["Subjects"].items():
             printt("{}:{}".format(k, v))
         printt("----------------------------------------")
-        printt("Contract inheritance is not show")
+        printt("Contract inheritance is omitted")
         printt("----------------------------------------")
     except KeyError:
         pass
@@ -316,12 +316,12 @@ def get_method(
         target_subtree_class=None,
         query_target_filter=None,
         page=0) -> list:
-    token = apic_login()
+    #token = apic_login()
     try:
         response = requests.get(
             url,
             headers={
-                "Cookie": "APIC-cookie=" + token,
+                "Cookie": "APIC-cookie=" + TOKEN,
                 "Content-obj": "application/json; charset=utf-8",
             },
             params={
@@ -369,6 +369,7 @@ def get_method(
 
 
 def get_node_objs(obj, filters=None) -> list:
+    print('Working: (%s)\r' % next(w), end="")
     url = APIC_URL + "/api/node/class/{}.json".format(obj)
     response = get_method(url, query_target_filter=filters)
     if response is not None:
@@ -1004,6 +1005,8 @@ the correct renderization of the policy.
     _debugLog = args.logfile
     print(APIC_URL)
     print(USERNAME)
+
+    TOKEN = apic_login()
 
     try:
         if args.tenant is None and args.contract is None:
