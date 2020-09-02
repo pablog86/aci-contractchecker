@@ -204,6 +204,8 @@ def printable(d):
         for k, v in d["Subjects"].items():
             printt("{}:{}".format(k, v))
         printt("----------------------------------------")
+        printt("Contract inheritance is not show")
+        printt("----------------------------------------")
     except KeyError:
         pass
 # ------------------------------------
@@ -378,7 +380,6 @@ def get_node_objs(obj, filters=None) -> list:
             aux, int(
                 response.json()["totalCount"])) < int(
                 response.json()["totalCount"]):  # len(aux)
-            # while response.json()["imdata"]!=[]:
             response = get_method(url, query_target_filter=filters, page=i)
             aux = aux + response.json()["imdata"]
             i = i + 1
@@ -545,10 +546,6 @@ class EPGs (VRFs):
                             epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
                         self.d_epgs[ctx_name].update(
                             {self.d_vrfs["{}-pctag".format(ctx_name)]: ctx_name})
-                    # if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
-                    #         epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
-                    #     self.d_epgs.update(
-                    #         {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
                 except KeyError:
                     printt(
                         "Undef scope:{} -> sg epg: {} ".format(
@@ -568,10 +565,6 @@ class EPGs (VRFs):
                             epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
                         self.d_epgs[self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update({self.d_vrfs["{}-pctag".format(
                             self.d_vrfs[epg[obj_id]["attributes"][ctx_id]])]: self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]})
-                    # if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
-                    #         epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
-                    #     self.d_epgs.update(
-                    #         {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
                     if obj_id == "fvRtdEpP":
                         for l3outAny in l3outsAny:
                             if re.search(
@@ -586,10 +579,11 @@ class EPGs (VRFs):
                             epg[obj_id]["attributes"][epg_id]))
                 try:
                     if int(epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
-                        self.d_epgs.update({epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                        self.d_epgs.update(
+                            {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
                 except ValueError:
                     pass
-        
+
         self.d_epgs.update({"16777200": self.d_vrfs["16777200"]})  # black-hole
 
     def get_l3extsubnet(self, filters) -> list:
@@ -704,9 +698,9 @@ class Contracts (EPGs):
                             self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node][i]["sPcTag"]]
                         else:
                             self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node]
-                                                                              [i]["scopeId"]][self.d_contract[self.node][i]["sPcTag"]]
+                                                                                  [i]["scopeId"]][self.d_contract[self.node][i]["sPcTag"]]
                     except KeyError:
-                            self.d_contract[self.node][i]["sPcTag"] = self.d_vrfs[self.d_contract[self.node][i]["sPcTag"]]
+                        self.d_contract[self.node][i]["sPcTag"] = self.d_vrfs[self.d_contract[self.node][i]["sPcTag"]]
 
             if self.d_contract[self.node][i]["dPcTag"] != "any":
                 if self.d_contract[self.node][i]["dPcTag"] in pctags:   # reserved pcTag
@@ -722,9 +716,9 @@ class Contracts (EPGs):
                             self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node][i]["dPcTag"]]
                         else:
                             self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node]
-                                                                              [i]["scopeId"]][self.d_contract[self.node][i]["dPcTag"]]
+                                                                                  [i]["scopeId"]][self.d_contract[self.node][i]["dPcTag"]]
                     except KeyError:
-                            self.d_contract[self.node][i]["dPcTag"] = self.d_vrfs[self.d_contract[self.node][i]["dPcTag"]]
+                        self.d_contract[self.node][i]["dPcTag"] = self.d_vrfs[self.d_contract[self.node][i]["dPcTag"]]
 
             # Default filter management
             if self.d_contract[self.node][i]["fltName"] in self.__rtype or self.d_contract[
@@ -791,7 +785,7 @@ class Contracts (EPGs):
                     rules[rule].update(
                         {t: zoningrule["actrlRule"]["attributes"][t]})
                 if zoningrule["actrlRule"]["attributes"]["ctrctName"] != "":
-                    try: 
+                    try:
                         aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
                             ":")
                         rules[rule].update(
@@ -806,10 +800,7 @@ class Contracts (EPGs):
                 {"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): rules})
 
         else:  # Filters matching the tenant/contract
-
             self.get_contract()
-            # if not bool(self.d_contract):
-            #    return None
             self.zoningrules = self.get_contracts_info(
                 self.urlzoningrule, filters="wcard(actrlRule.ctrctName,\"{}:{}\")".format(
                     self.tenant, self.contract))
@@ -824,10 +815,14 @@ class Contracts (EPGs):
                         rules[rule].update(
                             {t: zoningrule["actrlRule"]["attributes"][t]})
                     if zoningrule["actrlRule"]["attributes"]["ctrctName"] != "":
-                        aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
-                            ":")
-                        rules[rule].update(
-                            {"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
+                        try:
+                            aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
+                                ":")
+                            rules[rule].update(
+                                {"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
+                        except IndexError:
+                            rules[rule].update(
+                                {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
                     else:
                         rules[rule].update(
                             {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
@@ -840,7 +835,6 @@ class Contracts (EPGs):
     def get_contract(self):
         contracts = self.get_contracts_info(self.urlcontract)
         if bool(contracts):
-            #    return None
             self.d_contract = {
                 "dn": contracts[0]["vzBrCP"]["attributes"]["dn"]}
             self.d_contract.update({"Consumers": []})
