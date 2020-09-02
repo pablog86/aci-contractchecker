@@ -437,6 +437,9 @@ class VRFs (object):
                 {vrf[obj_id]["attributes"][ctx_id]: vrf[obj_id]["attributes"][scope_id]})
             self.d_vrfs.update(
                 {"{}-pctag".format(vrf[obj_id]["attributes"][ctx_id]): vrf[obj_id]["attributes"][pctag]})
+            if int(vrf[obj_id]["attributes"][pctag]) < 16386:
+                self.d_vrfs.update(
+                    {vrf[obj_id]["attributes"][pctag]: "{}-pctag".format(vrf[obj_id]["attributes"][ctx_id])})
         self.d_vrfs.update({"16777200": "uni/tn-infra/black-hole"})
         debug(self.d_vrfs, "VRFs: ", 2)
 
@@ -527,6 +530,7 @@ class EPGs (VRFs):
                 epg_id = "lIfCtxDn"
             else:
                 continue
+
             if obj_id == "vnsEPgDef":  # Service Graph shadow EPG
                 try:
                     ctx_name = re.findall(
@@ -541,10 +545,10 @@ class EPGs (VRFs):
                             epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
                         self.d_epgs[ctx_name].update(
                             {self.d_vrfs["{}-pctag".format(ctx_name)]: ctx_name})
-                    if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
-                            epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
-                        self.d_epgs.update(
-                            {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                    # if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
+                    #         epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
+                    #     self.d_epgs.update(
+                    #         {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
                 except KeyError:
                     printt(
                         "Undef scope:{} -> sg epg: {} ".format(
@@ -563,12 +567,11 @@ class EPGs (VRFs):
                         self.d_epgs[self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]] = {
                             epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
                         self.d_epgs[self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]].update({self.d_vrfs["{}-pctag".format(
-                            self.d_vrfs[epg[obj_id]["attributes"][ctx_id]])]: self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]}
-                        )
-                    if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
-                            epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
-                        self.d_epgs.update(
-                            {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                            self.d_vrfs[epg[obj_id]["attributes"][ctx_id]])]: self.d_vrfs[epg[obj_id]["attributes"][ctx_id]]})
+                    # if epg[obj_id]["attributes"]["pcTag"].isdigit() and int(
+                    #         epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
+                    #     self.d_epgs.update(
+                    #         {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
                     if obj_id == "fvRtdEpP":
                         for l3outAny in l3outsAny:
                             if re.search(
@@ -581,6 +584,12 @@ class EPGs (VRFs):
                         "Undef scope:{} -> epg: {} ".format(
                             epg[obj_id]["attributes"][ctx_id],
                             epg[obj_id]["attributes"][epg_id]))
+                try:
+                    if int(epg[obj_id]["attributes"]["pcTag"]) < 16386:  # pcTag global
+                        self.d_epgs.update({epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                except ValueError:
+                    pass
+        
         self.d_epgs.update({"16777200": self.d_vrfs["16777200"]})  # black-hole
 
     def get_l3extsubnet(self, filters) -> list:
@@ -661,7 +670,7 @@ class Contracts (EPGs):
                 self.filters.append("scope-{}".format(scope))
             EPGs.__init__(self, self.filters)
         self.contract_rules()
-        debug(self.d_vrfs, "EPGs: ", 2)
+        debug(self.d_vrfs, "VRFs: ", 2)
         debug(self.d_epgs, "EPGs: ", 2)
         debug(self.d_contract, "Contracts: ", 2)
 
@@ -689,12 +698,15 @@ class Contracts (EPGs):
                     except KeyError:
                         self.d_contract[self.node][i]["sPcTag"] = pctags[self.d_contract[self.node][i]["sPcTag"]]
                 else:
-                    if self.d_contract[self.node][i]["sPcTag"].isdigit() and int(
-                            self.d_contract[self.node][i]["sPcTag"]) < 16386:  # pcTag Global
-                        self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node][i]["sPcTag"]]
-                    else:
-                        self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node]
+                    try:
+                        if self.d_contract[self.node][i]["sPcTag"].isdigit() and int(
+                                self.d_contract[self.node][i]["sPcTag"]) < 16386:  # pcTag Global
+                            self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node][i]["sPcTag"]]
+                        else:
+                            self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node]
                                                                               [i]["scopeId"]][self.d_contract[self.node][i]["sPcTag"]]
+                    except KeyError:
+                            self.d_contract[self.node][i]["sPcTag"] = self.d_vrfs[self.d_contract[self.node][i]["sPcTag"]]
 
             if self.d_contract[self.node][i]["dPcTag"] != "any":
                 if self.d_contract[self.node][i]["dPcTag"] in pctags:   # reserved pcTag
@@ -704,12 +716,16 @@ class Contracts (EPGs):
                     except KeyError:
                         self.d_contract[self.node][i]["dPcTag"] = pctags[self.d_contract[self.node][i]["dPcTag"]]
                 else:
-                    if self.d_contract[self.node][i]["dPcTag"].isdigit() and int(
-                            self.d_contract[self.node][i]["dPcTag"]) < 16386:  # pcTag Global
-                        self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node][i]["dPcTag"]]
-                    else:
-                        self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node]
+                    try:
+                        if self.d_contract[self.node][i]["dPcTag"].isdigit() and int(
+                                self.d_contract[self.node][i]["dPcTag"]) < 16386:  # pcTag Global
+                            self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node][i]["dPcTag"]]
+                        else:
+                            self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node]
                                                                               [i]["scopeId"]][self.d_contract[self.node][i]["dPcTag"]]
+                    except KeyError:
+                            self.d_contract[self.node][i]["dPcTag"] = self.d_vrfs[self.d_contract[self.node][i]["dPcTag"]]
+
             # Default filter management
             if self.d_contract[self.node][i]["fltName"] in self.__rtype or self.d_contract[
                     self.node][i]["fltName"] == self.d_contract[self.node][i]["fltId"]:
@@ -775,10 +791,14 @@ class Contracts (EPGs):
                     rules[rule].update(
                         {t: zoningrule["actrlRule"]["attributes"][t]})
                 if zoningrule["actrlRule"]["attributes"]["ctrctName"] != "":
-                    aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
-                        ":")
-                    rules[rule].update(
-                        {"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
+                    try: 
+                        aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
+                            ":")
+                        rules[rule].update(
+                            {"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
+                    except IndexError:
+                        rules[rule].update(
+                            {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
                 else:
                     rules[rule].update(
                         {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
