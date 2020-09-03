@@ -10,7 +10,7 @@ The script can log in a file the outputs executed for analysis in the same folde
 
 ## Requirements
 
-***Tested on ACI 4.1 and 5.0***
+***Tested on ACI 4.1, 4.2 and 5.0***
 
 ### Clone the repository
 
