@@ -28,9 +28,10 @@ warnings.simplefilter('ignore', InsecureRequestWarning)
 # **********************************************************************************
 # MODIFIABLE DEFINITIONS
 # **********************************************************************************
+
 verify_https = False  # Validate https certificate
 page_size = 2000  # Elements per page (low numbers may generate some issues)
-TOKEN = None
+
 # ----------------------------------------------------------------------
 
 priorities = {"class-eq-filter": 1,
@@ -62,6 +63,7 @@ priorities = {"class-eq-filter": 1,
 # Globally scoped pcTag - This pcTag is used for shared service (16-16385).
 # Locally scoped pcTag - This pcTag is locally used per VRF (range from 16386-65535).
 # **********************************************************************************
+
 pctags = {
     "0": "any",
     "1": "ignore",  # Ignore in Spine-Proxy, ARP, Multicast, etc.
@@ -138,11 +140,12 @@ def count_elem(l, maxcount) -> int:
     return aux
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
-
+# API Calls
+# ---------------------------------------------------------------------------------------------------------------------------------------------
 
 # Login to APIC #
 w = cycle(("|", "/", "-", "\\"))
-
+TOKEN = None
 
 def apic_login() -> str:
     print('Working: (%s)\r' % next(w), end="")
@@ -175,6 +178,64 @@ def apic_login() -> str:
         print("Connection error.")
         sys.exit()
     return token
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+def get_method(
+        url,
+        query_target=None,
+        target_subtree_class=None,
+        query_target_filter=None,
+        page=0) -> list:
+    #token = apic_login()
+    try:
+        response = requests.get(
+            url,
+            headers={
+                "Cookie": "APIC-cookie=" + TOKEN,
+                "Content-obj": "application/json; charset=utf-8",
+            },
+            params={
+                "query-target": query_target,
+                "target-subtree-class": target_subtree_class,
+                "query-target-filter": query_target_filter,
+                "page-size": page_size,
+                "page": page},
+            verify=verify_https)
+        debug(
+            response.status_code,
+            "Debug output CODE {} -> (url={}, query_target={}, target-subtree-class={}, query-target-filter={}, page-size={}, page={}): ".format(
+                inspect.stack()[1][3],
+                url,
+                query_target,
+                target_subtree_class,
+                query_target_filter,
+                page_size,
+                page),
+            1)
+        if response.status_code == requests.codes.ok:
+            debug(
+                response.json(),
+                "Debug output {} -> (url={}, query_target={}, target-subtree-class={}, query-target-filter={}, page-size={}, page={}): ".format(
+                    inspect.stack()[1][3],
+                    url,
+                    query_target,
+                    target_subtree_class,
+                    query_target_filter,
+                    page_size,
+                    page))
+            debug(response.json()["totalCount"], "totalCount: ", 1)
+            return response
+        else:
+            return None
+    except requests.exceptions.RequestException:
+        debug(
+            "HTTP Request failed, Status Code: {status_code}".format(
+                status_code=response.status_code))
+        return None
+
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 # Output formatting
@@ -305,95 +366,6 @@ def printable(d):
                 lenFilter))
     printt("\n")
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-# API Calls
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-
-
-def get_method(
-        url,
-        query_target=None,
-        target_subtree_class=None,
-        query_target_filter=None,
-        page=0) -> list:
-    #token = apic_login()
-    try:
-        response = requests.get(
-            url,
-            headers={
-                "Cookie": "APIC-cookie=" + TOKEN,
-                "Content-obj": "application/json; charset=utf-8",
-            },
-            params={
-                "query-target": query_target,
-                "target-subtree-class": target_subtree_class,
-                "query-target-filter": query_target_filter,
-                "page-size": page_size,
-                "page": page},
-            verify=verify_https)
-        debug(
-            response.status_code,
-            "Debug output CODE {} -> (url={}, query_target={}, target-subtree-class={}, query-target-filter={}, page-size={}, page={}): ".format(
-                inspect.stack()[1][3],
-                url,
-                query_target,
-                target_subtree_class,
-                query_target_filter,
-                page_size,
-                page),
-            1)
-        if response.status_code == requests.codes.ok:
-            debug(
-                response.json(),
-                "Debug output {} -> (url={}, query_target={}, target-subtree-class={}, query-target-filter={}, page-size={}, page={}): ".format(
-                    inspect.stack()[1][3],
-                    url,
-                    query_target,
-                    target_subtree_class,
-                    query_target_filter,
-                    page_size,
-                    page))
-            debug(response.json()["totalCount"], "totalCount: ", 1)
-            return response
-        else:
-            return None
-    except requests.exceptions.RequestException:
-        debug(
-            "HTTP Request failed, Status Code: {status_code}".format(
-                status_code=response.status_code))
-        return None
-
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-
-# Get EPGs or VRFs#
-
-
-def get_node_objs(obj, filters=None) -> list:
-    print('Working: (%s)\r' % next(w), end="")
-    url = APIC_URL + "/api/node/class/{}.json".format(obj)
-    response = get_method(url, query_target_filter=filters)
-    if response is not None:
-        aux = response.json()["imdata"]
-        i = 1
-        while count_elem(
-            aux, int(
-                response.json()["totalCount"])) < int(
-                response.json()["totalCount"]):  # len(aux)
-            response = get_method(url, query_target_filter=filters, page=i)
-            aux = aux + response.json()["imdata"]
-            i = i + 1
-        debug(len(aux), "get_node_objs response lenght:", 1)
-        if count_elem(
-            aux, int(
-                response.json()["totalCount"])) > int(
-                response.json()["totalCount"]):
-            printt(
-                "More elements ({}) than totalCount ({})".format(
-                    aux, response.json()["totalCount"]))
-        return aux
-    else:
-        return []
-
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 # VRFs class
@@ -409,8 +381,9 @@ class VRFs (object):
 
         self.get_vrf()
 
+
     def get_vrf(self):
-        vrfs = get_node_objs(self.__objTypeVrf, self.filters)  # fvACtx
+        vrfs = self.get_node_objs(self.__objTypeVrf, self.filters)  # fvACtx
         if vrfs is None:
             return None
         for vrf in vrfs:
@@ -441,8 +414,36 @@ class VRFs (object):
                 self.d_vrfs.update(
                     {vrf[obj_id]["attributes"][pctag]: "{}-pctag".format(vrf[obj_id]["attributes"][ctx_id])})
         self.d_vrfs.update({"16777200": "uni/tn-infra/black-hole"})
+        self.d_vrfs.update({"16777199": "uni/tn-infra/ap-access/epg-default"})
+        self.d_vrfs.update({"1": "uni/tn-mgmt/extmgmt-default"})
         debug(self.d_vrfs, "VRFs: ", 2)
 
+
+    def get_node_objs(self, obj, filters=None) -> list:
+        print('Working: (%s)\r' % next(w), end="")
+        url = APIC_URL + "/api/node/class/{}.json".format(obj)
+        response = get_method(url, query_target_filter=filters)
+        if response is not None:
+            aux = response.json()["imdata"]
+            i = 1
+            while count_elem(
+                aux, int(
+                    response.json()["totalCount"])) < int(
+                    response.json()["totalCount"]):  # len(aux)
+                response = get_method(url, query_target_filter=filters, page=i)
+                aux = aux + response.json()["imdata"]
+                i = i + 1
+            debug(len(aux), "get_node_objs response lenght:", 1)
+            if count_elem(
+                aux, int(
+                    response.json()["totalCount"])) > int(
+                    response.json()["totalCount"]):
+                printt(
+                    "More elements ({}) than totalCount ({})".format(
+                        aux, response.json()["totalCount"]))
+            return aux
+        else:
+            return []
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 # EPGs class
@@ -465,6 +466,7 @@ class EPGs (VRFs):
         self.d_epgs = {}
         self.epgs()
 
+
     def epgs(self):
         if len(self.filters) > 0:
             for filte in self.filters:
@@ -480,9 +482,10 @@ class EPGs (VRFs):
             for epg_t in self.__objTypeEpgs:
                 self.mapping_epg_pctag(epg_t)
 
+
     def mapping_epg_pctag(self, obj, filters=None):
 
-        epgs = get_node_objs(obj, filters)
+        epgs = self.get_node_objs(obj, filters)
         if obj == "fvAREpP":
             l3outsAny = self.get_l3extsubnet(
                 "eq(l3extSubnet.ip, \"0.0.0.0/0\")")
@@ -585,6 +588,7 @@ class EPGs (VRFs):
 
         self.d_epgs.update({"16777200": self.d_vrfs["16777200"]})  # black-hole
 
+
     def get_l3extsubnet(self, filters) -> list:
         url = APIC_URL + \
             "/api/node/class/l3extSubnet.json"
@@ -666,6 +670,7 @@ class Contracts (EPGs):
         debug(self.d_vrfs, "VRFs: ", 2)
         debug(self.d_epgs, "EPGs: ", 2)
         debug(self.d_contract, "Contracts: ", 2)
+
 
     def contract_rules(self):
 
@@ -761,6 +766,7 @@ class Contracts (EPGs):
             for i in r:
                 del self.d_contract[self.node][i]
 
+
     def mapping_zoningrule_contract(self):
 
         rule_type = (
@@ -831,6 +837,7 @@ class Contracts (EPGs):
                 self.d_contract.update(
                     {"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): {}})
 
+
     def get_contract(self):
         contracts = self.get_contracts_info(self.urlcontract)
         if bool(contracts):
@@ -858,6 +865,7 @@ class Contracts (EPGs):
                         subject=c["vzSubj"]["attributes"]["name"]):
                     self.d_contract["Subjects"][c["vzSubj"]["attributes"]["dn"]].append(
                         s["vzRsSubjFiltAtt"]["attributes"]["tDn"])
+
 
     def get_contracts_info(
             self,
@@ -911,6 +919,27 @@ class Contracts (EPGs):
 # PASS = "ciscopsdt"
 # If there isn't a envs.py you can introduce the values in runtime
 # **********************************************************************************
+
+def getNode1Ver (token) -> bool:
+    try:
+        response = requests.get(
+            url=APIC_URL + "/api/node/class/topology/pod-1/node-1/firmwareCtrlrRunning.json",
+            headers={
+                "Cookie": "APIC-cookie=" + token,
+                "Content-obj": "application/json; charset=utf-8",
+            },
+            verify=False)
+        if response.status_code == 200:
+            json_response = json.loads(response.content)
+            version = json_response['imdata'][0]['firmwareCtrlrRunning']['attributes']['version']
+            return version
+    except KeyError:
+        print(
+            "HTTP Request failed, Status Code: {status_code}".format(
+                status_code=response.status_code))
+    
+
+
 
 if __name__ == "__main__":
     import argparse
@@ -1007,6 +1036,11 @@ the correct renderization of the policy.
     print(USERNAME)
 
     TOKEN = apic_login()
+    version = getNode1Ver(TOKEN)
+    print ("APIC1 version:",version)
+    if version< "4.1":
+        print("Unsupported APIC version")
+        sys.exit()
 
     try:
         if args.tenant is None and args.contract is None:
