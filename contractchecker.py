@@ -4,8 +4,7 @@
 # source contractchecker_env/bin/activate
 # **********************************************************************************
 # **********************************************************************************
-# Script desarrollado por Pablo Gomez - Regional Solutions Architect in OCP TECH
-# (https://ocp.tech) pablo.gomez@ocp.tech
+# Script desarrollado por Pablo Gomez - CCIE DC 57661
 # **********************************************************************************
 # **********************************************************************************
 
@@ -22,6 +21,12 @@ from itertools import cycle
 import inspect
 from collections import Counter
 from datetime import datetime
+import envs
+
+import pandas as pd
+import openpyxl
+from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 warnings.simplefilter('ignore', InsecureRequestWarning)
 
@@ -145,7 +150,7 @@ def count_elem(l, maxcount) -> int:
 
 # Login to APIC #
 w = cycle(("|", "/", "-", "\\"))
-TOKEN = None
+envs.TOKEN = None
 
 def apic_login() -> str:
     print('Working: (%s)\r' % next(w), end="")
@@ -153,7 +158,7 @@ def apic_login() -> str:
     err = ""
     try:
         response = requests.post(
-            url=APIC_URL + "/api/aaaLogin.json",
+            url=envs.APIC_URL + "/api/aaaLogin.json",
             headers={
                 "Content-obj": "application/json; charset=utf-8",
             },
@@ -161,8 +166,8 @@ def apic_login() -> str:
                 {
                     "aaaUser": {
                         "attributes": {
-                            "name": USERNAME,
-                            "pwd": PASS
+                            "name": envs.USERNAME,
+                            "pwd": envs.PASS
                         }
                     }
                 }
@@ -194,7 +199,7 @@ def get_method(
         response = requests.get(
             url,
             headers={
-                "Cookie": "APIC-cookie=" + TOKEN,
+                "Cookie": "APIC-cookie=" + envs.TOKEN,
                 "Content-obj": "application/json; charset=utf-8",
             },
             params={
@@ -242,25 +247,25 @@ def get_method(
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
 
-def printable(d):
-    if not bool(d):
+def printable(d_contract, wr=False):
+    if not bool(d_contract):
         printt("No matching criteria -> empty output")
         return None
 # ------------------------------------
     try:
         printt(
             "\n################### Contract: {} ###################\n".format(
-                d["dn"]))
+                d_contract["dn"]))
         printt("Consumers: ")
-        for i in d["Consumers"]:
+        for i in d_contract["Consumers"]:
             printt(i)
         printt("----------------------------------------")
         printt("Providers: ")
-        for i in d["Providers"]:
+        for i in d_contract["Providers"]:
             printt(i)
         printt("----------------------------------------")
         printt("Subjects: ")
-        for k, v in d["Subjects"].items():
+        for k, v in d_contract["Subjects"].items():
             printt("{}:{}".format(k, v))
         printt("----------------------------------------")
         printt("Contract inheritance is omitted")
@@ -268,105 +273,33 @@ def printable(d):
     except KeyError:
         pass
 # ------------------------------------
-    i = 0
-    table = []
-    keys = d.keys()
-    for key in keys:
-        node = re.findall("rules.*", key)
-    printt(
-        "\n################### Rules in node: {} ###################\n".format(
-            node[0]))
-    if not bool(d[node[0]]):
-        printt("No rules match\n")
-        return
-    #TODO: optimize
-    for k1, v1 in d[node[0]].items():
-        table.append([i])
-        table[i].append(v1["id"])
-        table[i].append(re.sub("uni/", "", v1["sPcTag"]))
-        table[i].append(re.sub("uni/", "", v1["dPcTag"]))
-        table[i].append(v1["direction"])
-        table[i].append(v1["operSt"])
-        table[i].append(re.sub("uni/", "", v1["scopeId"]))
-        table[i].append(v1["action"])
-        table[i].append(v1["prio"])
-        table[i].append(v1["fltName"])
-        table[i].append(v1["fltId"])
-        table[i].append(int(priorities[v1["prio"]]))
-        i = i + 1
-    ttable = np.transpose(table)
-    lenSource = len(max(ttable[2], key=len))
-    lenSource = lenSource if lenSource > 6 else 8
-    lenDest = len(max(ttable[3], key=len))
-    lenDest = lenDest if lenDest > 11 else 13
-    lenVRF = len(max(ttable[6], key=len))
-    lenVRF = lenVRF if lenVRF > 3 else 5
-    lenPrio = len(max(ttable[8], key=len))
-    lenPrio = lenPrio if lenPrio > 4 else 10
-    lenFilter = len(max(ttable[9], key=len))
-    lenFilter = lenFilter if lenFilter > 15 else 15
-
-    matrix = np.array(table)
-    table = matrix[np.argsort(matrix[:, 11].astype(int))
-                   ].tolist()  # Order by priority
-    printt(
-        "{:<4} {:<{}} {:<{}} {:<14} {:<7} {:<{}} {:<15} {:<{}} {:<{}}".format(
-            'id',
-            'Source',
-            lenSource,
-            'Destination',
-            lenDest,
-            'Direction',
-            "State",
-            "VRF",
-            lenVRF,
-            "Action",
-            "Prio",
-            lenPrio,
-            "    Filter-Contract",
-            lenFilter))
-    printt(
-        "-" * len(
-            "{:<4} {:<{}} {:<{}} {:<14} {:<7} {:<{}} {:<15} ({}){:<{}} ({}){:<{}}".format(
-                'id',
-                'Source',
-                lenSource,
-                'Destination',
-                lenDest,
-                'Direction',
-                "State",
-                "VRF",
-                lenVRF,
-                "Action",
-                "XX",
-                "Prio",
-                lenPrio,
-                "default",
-                "Filter-Contract",
-                lenFilter)))
-    for line in table:
-        index, iD, sPcTag, dPcTag, direction, operSt, scopeId, action, prio, fltName, fltId, nprio = line
-        printt(
-            "{:<4} {:<{}} {:<{}} {:<14} {:<7} {:<{}} {:<15} ({:02d}){:<{}} ({}){:<{}}".format(
-                iD,
-                sPcTag,
-                lenSource,
-                dPcTag,
-                lenDest,
-                direction,
-                operSt,
-                scopeId,
-                lenVRF,
-                action,
-                priorities[prio],
-                prio,
-                lenPrio,
-                fltId,
-                fltName,
-                lenFilter))
-    printt("\n")
-
-
+    contract_list = pd.DataFrame(columns=['id', 'Source', 'Destination', 'VRF', 'Contract ', 'Filter', 'Action', 'Prio', 'Priority', 'Direction', 'State'])
+    i = 1
+    for rules in d_contract:
+        for rule in d_contract[rules]:
+            r = d_contract[rules][rule]
+            contract_list.loc[i] = [r["id"], 
+            r["sPcTag-str"].replace("uni/tn-", "").replace("/ap-", "/").replace("/epg-", "/").replace("/out-", "/").replace("/instP-", "/").replace("/ldevCtx-c-","/").replace("/ctx-", "/"), 
+            r["dPcTag-str"].replace("uni/tn-", "").replace("/ap-", "/").replace("/epg-", "/").replace("/out-", "/").replace("/instP-", "/").replace("/ldevCtx-c-","/").replace("/ctx-", "/"), 
+            r["scopeId-str"].replace("uni/tn-", "").replace("/ctx-", "/"), 
+            r["fltName"].replace("uni/tn-", "").replace("/bcr-","/"), 
+            r["fltId"], 
+            r["action"], 
+            priorities[r["prio"]], 
+            r["prio"], 
+            r["direction"], 
+            r["operSt"]]
+            i += 1
+    contract_list = contract_list.set_index("id")
+    contract_list = contract_list.sort_values(by="Prio", ascending=True)
+    printt(contract_list.to_markdown(tablefmt="psql")) #tablefmt="grid"
+    if wr:
+        wb = openpyxl.Workbook()
+        wbname = str(next(iter(d_contract))).replace("/","_")+".xlsx"
+        printt("Writing {} on same directory".format(wbname))
+        with pd.ExcelWriter(wbname, engine="openpyxl") as writer:
+            contract_list.to_excel(writer, sheet_name="ACL_Rules", startrow=0)
+    printt(datetime.now())
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 # VRFs class
 # ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -414,14 +347,14 @@ class VRFs (object):
                 self.d_vrfs.update(
                     {vrf[obj_id]["attributes"][pctag]: "{}-pctag".format(vrf[obj_id]["attributes"][ctx_id])})
         self.d_vrfs.update({"16777200": "uni/tn-infra/black-hole"})
-        self.d_vrfs.update({"16777199": "uni/tn-infra/ap-access/epg-default"})
-        self.d_vrfs.update({"1": "uni/tn-mgmt/extmgmt-default"})
+        #self.d_vrfs.update({"16777199": "uni/tn-infra/ap-access/epg-default"})
+        #self.d_vrfs.update({"1": "uni/tn-mgmt/extmgmt-default"})
         debug(self.d_vrfs, "VRFs: ", 2)
 
 
     def get_node_objs(self, obj, filters=None) -> list:
         print('Working: (%s)\r' % next(w), end="")
-        url = APIC_URL + "/api/node/class/{}.json".format(obj)
+        url = envs.APIC_URL + "/api/node/class/{}.json".format(obj)
         response = get_method(url, query_target_filter=filters)
         if response is not None:
             aux = response.json()["imdata"]
@@ -536,21 +469,25 @@ class EPGs (VRFs):
 
             if obj_id == "vnsEPgDef":  # Service Graph shadow EPG
                 try:
-                    ctx_name = re.findall(
-                        r"(?<=S-\[).+?(?=\])",
-                        epg[obj_id]["attributes"][ctx_id])[0]  # TODO: some SG doesnt inform ctx
-                    self.d_epgs.update({self.d_vrfs[ctx_name]: ctx_name})
-                    if ctx_name in self.d_epgs:
-                        self.d_epgs[ctx_name].update(
-                            {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
-                    else:
-                        self.d_epgs[ctx_name] = {
-                            epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
-                        self.d_epgs[ctx_name].update(
-                            {self.d_vrfs["{}-pctag".format(ctx_name)]: ctx_name})
+                    if int(epg[obj_id]["attributes"]["pcTag"]) > 16385:  # pcTag local
+                        ctx_name = re.findall(
+                            r"(?<=S-\[).+?(?=\])",
+                            epg[obj_id]["attributes"][ctx_id])[0]  # TODO: some SG doesnt inform ctx
+                        self.d_epgs.update({self.d_vrfs[ctx_name]: ctx_name})
+                        if ctx_name in self.d_epgs:
+                            self.d_epgs[ctx_name].update(
+                                {epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]})
+                        else:
+                            self.d_epgs[ctx_name] = {
+                                epg[obj_id]["attributes"]["pcTag"]: epg[obj_id]["attributes"][epg_id]}
+                            self.d_epgs[ctx_name].update(
+                                {self.d_vrfs["{}-pctag".format(ctx_name)]: ctx_name})
+                    else: # pcTag global
+                        self.d_epgs.update(
+                                {epg[obj_id]["attributes"]["pcTag"]: str(epg[obj_id]["attributes"][epg_id])[:-18]})
                 except KeyError:
                     printt(
-                        "Undef scope:{} -> sg epg: {} ".format(
+                        "Undef scope:{} -> sg object: {} ".format(
                             ctx_name,
                             epg[obj_id]["attributes"][epg_id]))
 
@@ -576,7 +513,7 @@ class EPGs (VRFs):
                                     {"15": "{}(0.0.0.0/0)".format(epg[obj_id]["attributes"][epg_id])})
                 except KeyError:
                     printt(
-                        "Undef scope:{} -> epg: {} ".format(
+                        "Undef scope:{} -> object: {} ".format(
                             epg[obj_id]["attributes"][ctx_id],
                             epg[obj_id]["attributes"][epg_id]))
                 try:
@@ -590,7 +527,7 @@ class EPGs (VRFs):
 
 
     def get_l3extsubnet(self, filters) -> list:
-        url = APIC_URL + \
+        url = envs.APIC_URL + \
             "/api/node/class/l3extSubnet.json"
         response = get_method(
             url,
@@ -635,13 +572,13 @@ class Contracts (EPGs):
         self.tenant = tenant
         self.contract = contract
 
-        self.urlfilterinfo = APIC_URL + \
+        self.urlfilterinfo = envs.APIC_URL + \
             "/api/node/class/topology/pod-{}/node-{}/vzRsRFltAtt.json".format(self.pod_id, self.node_id)
-        self.urlzoningrule = APIC_URL + \
+        self.urlzoningrule = envs.APIC_URL + \
             "/api/node/class/topology/pod-{}/node-{}/actrlRule.json".format(self.pod_id, self.node_id)
-        self.urlcontract = APIC_URL + \
+        self.urlcontract = envs.APIC_URL + \
             "/api/node/mo/uni/tn-{}/brc-{}.json".format(self.tenant, self.contract)
-        self.urlsubject = APIC_URL + \
+        self.urlsubject = envs.APIC_URL + \
             "/api/node/mo/uni/tn-{}/brc-{}/".format(self.tenant, self.contract)
 
         self.__brc = "uni/tn-{}/brc-{}".format(tenant, contract)
@@ -686,78 +623,81 @@ class Contracts (EPGs):
                     self.__brc))
         debug(d_fltInfo, "Filter Info: ", 3)
         for i in self.d_contract[self.node]:
-            self.d_contract[self.node][i]["scopeId"] = self.d_epgs[self.d_contract[self.node][i]["scopeId"]]
+            self.d_contract[self.node][i]["scopeId-str"] = self.d_epgs[self.d_contract[self.node][i]["scopeId"]]
 
             if self.d_contract[self.node][i]["sPcTag"] != "any":
                 if self.d_contract[self.node][i]["sPcTag"] in pctags:  # reserved pcTag
                     try:
-                        self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node]
-                                                                              [i]["scopeId"]]["15"]
+                        self.d_contract[self.node][i]["sPcTag-str"] = self.d_epgs[self.d_contract[self.node][i]["scopeId-str"]]["15"]
                     except KeyError:
-                        self.d_contract[self.node][i]["sPcTag"] = pctags[self.d_contract[self.node][i]["sPcTag"]]
+                        self.d_contract[self.node][i]["sPcTag-str"] = pctags[self.d_contract[self.node][i]["sPcTag"]]
                 else:
                     try:
                         if self.d_contract[self.node][i]["sPcTag"].isdigit() and int(
                                 self.d_contract[self.node][i]["sPcTag"]) < 16386:  # pcTag Global
-                            self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node][i]["sPcTag"]]
+                            self.d_contract[self.node][i]["sPcTag-str"] = self.d_epgs[self.d_contract[self.node][i]["sPcTag"]]
                         else:
-                            self.d_contract[self.node][i]["sPcTag"] = self.d_epgs[self.d_contract[self.node]
-                                                                                  [i]["scopeId"]][self.d_contract[self.node][i]["sPcTag"]]
+                            self.d_contract[self.node][i]["sPcTag-str"] = self.d_epgs[self.d_contract[self.node]
+                                                                                  [i]["scopeId-str"]][self.d_contract[self.node][i]["sPcTag"]]
                     except KeyError:
-                        self.d_contract[self.node][i]["sPcTag"] = self.d_vrfs[self.d_contract[self.node][i]["sPcTag"]]
+                        self.d_contract[self.node][i]["sPcTag-str"] = self.d_vrfs[self.d_contract[self.node][i]["sPcTag"]]
 
             if self.d_contract[self.node][i]["dPcTag"] != "any":
                 if self.d_contract[self.node][i]["dPcTag"] in pctags:   # reserved pcTag
                     try:
-                        self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node]
-                                                                              [i]["scopeId"]]["15"]
+                        self.d_contract[self.node][i]["dPcTag-str"] = self.d_epgs[self.d_contract[self.node][i]["scopeId-str"]]["15"]
                     except KeyError:
-                        self.d_contract[self.node][i]["dPcTag"] = pctags[self.d_contract[self.node][i]["dPcTag"]]
+                        self.d_contract[self.node][i]["dPcTag-str"] = pctags[self.d_contract[self.node][i]["dPcTag"]]
                 else:
                     try:
                         if self.d_contract[self.node][i]["dPcTag"].isdigit() and int(
                                 self.d_contract[self.node][i]["dPcTag"]) < 16386:  # pcTag Global
-                            self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node][i]["dPcTag"]]
+                            self.d_contract[self.node][i]["dPcTag-str"] = self.d_epgs[self.d_contract[self.node][i]["dPcTag"]]
                         else:
-                            self.d_contract[self.node][i]["dPcTag"] = self.d_epgs[self.d_contract[self.node]
-                                                                                  [i]["scopeId"]][self.d_contract[self.node][i]["dPcTag"]]
+                            self.d_contract[self.node][i]["dPcTag-str"] = self.d_epgs[self.d_contract[self.node]
+                                                                                  [i]["scopeId-str"]][self.d_contract[self.node][i]["dPcTag"]]
                     except KeyError:
-                        self.d_contract[self.node][i]["dPcTag"] = self.d_vrfs[self.d_contract[self.node][i]["dPcTag"]]
+                        self.d_contract[self.node][i]["dPcTag-str"] = self.d_vrfs[self.d_contract[self.node][i]["dPcTag"]]
 
-            # Default filter management
-            if self.d_contract[self.node][i]["fltName"] in self.__rtype or self.d_contract[
-                    self.node][i]["fltName"] == self.d_contract[self.node][i]["fltId"]:
-                for fltInfo in d_fltInfo:
-                    f = fltInfo["vzRsRFltAtt"]["attributes"]["dn"]
+            ##Add info to Contract Name ----  
+            for fltInfo in d_fltInfo:
+                f = fltInfo["vzRsRFltAtt"]["attributes"]["dn"]
+                
+                sTag = self.d_contract[self.node][i]["sPcTag-str"].replace("-pctag", "")
+                if sTag in self.d_epgs.keys():#== self.d_contract[self.node][i]["scopeId-str"]:
+                    sTag = self.d_epgs[sTag]["15"]
+                elif sTag == pctags["15"]:
+                    sTag = self.d_epgs[self.d_contract[self.node][i]["scopeId-str"]]["15"]
+                
+                dTag = self.d_contract[self.node][i]["dPcTag-str"].replace("-pctag", "")
+                if dTag in self.d_epgs.keys():#== self.d_contract[self.node][i]["scopeId-str"]: 
+                    dTag = self.d_epgs[dTag]["15"]
+                elif dTag == pctags["15"]:
                     try:
-                        if re.search(
-                            self.d_contract[self.node][i]["sPcTag"].replace("(0.0.0.0/0)", ""),
-                            f) and re.search(
-                            self.d_contract[self.node][i]["dPcTag"].replace("(0.0.0.0/0)", ""),
-                            f) and re.search(
-                            self.d_contract[self.node][i]["fltId"],
-                                f):
-                            aux = re.findall(
-                                r"(?<=/cdef-\[).+?(?=\])",
-                                fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
-                            if aux is not None:
-                                self.d_contract[self.node][i]["fltName"] = aux
-                    except BaseException:
-                        debug(
-                            "re.search error (bad character range n-a), sPcTag: {},  dPcTag: {}, fltId: {}".format(
-                                self.d_contract[self.node][i]["sPcTag"],
-                                self.d_contract[self.node][i]["dPcTag"],
-                                self.d_contract[self.node][i]["fltId"]),
-                            level=1)
-                        if f == "default":
-                            aux = re.findall(
-                                r"(?<=/cdef-\[).+?(?=\])",
-                                fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
-                            if aux is not None:
+                        dTag = self.d_epgs[self.d_contract[self.node][i]["scopeId-str"]]["15"]  
+                    except:
+                        dTag = "instP-" #Leaking mix the 15 pctag in a different VRF, TODO: improve this
+                
+                try:
+                    if re.search(sTag.replace("(0.0.0.0/0)", ""), f) and re.search(dTag.replace("(0.0.0.0/0)", ""), f) and re.search(self.d_contract[self.node][i]["fltName"], f):
+                        aux = re.findall(
+                            r"(?<=/cdef-\[).+?(?=\])",
+                            fltInfo["vzRsRFltAtt"]["attributes"]["dn"])[0]
+                        if "GraphInst_C-[" in aux:
+                            aux = re.findall(r"(?<=/GraphInst_C-\[).+?(?=\])",aux)[0]
+                        if aux is not None:
+                            self.d_contract[self.node][i]["fltName"] = aux
+                except BaseException:
+                    debug(
+                        "re.search error (bad character range n-a), {} sPcTag: {},  dPcTag: {}, fltId: {}".format(
+                            self.d_contract[self.node][i]["id"],
+                            self.d_contract[self.node][i]["sPcTag-str"],
+                            self.d_contract[self.node][i]["dPcTag-str"],
+                            self.d_contract[self.node][i]["fltId"]),
+                        level=1)
 
-                                self.d_contract[self.node][i]["fltName"] = aux
 
-        # Default filter management purge | TODO: improve this!
+        # Default filter management purge | TODO: improve this
         if self.tenant is not None or self.contract is not None:
             r = []
             for i in self.d_contract[self.node]:
@@ -778,10 +718,11 @@ class Contracts (EPGs):
             "operSt",
             "scopeId",
             "action",
-            "prio")
+            "prio",
+            )
         rules = {}
-
-        if self.tenant is None or self.contract is None:  # All filters in the switch
+# All filters in the switch
+        if self.tenant is None or self.contract is None:  
             self.zoningrules = self.get_contracts_info(self.urlzoningrule)
             for zoningrule in self.zoningrules:
                 rule = zoningrule["actrlRule"]["attributes"]["dn"]
@@ -789,22 +730,26 @@ class Contracts (EPGs):
                 for t in rule_type:
                     rules[rule].update(
                         {t: zoningrule["actrlRule"]["attributes"][t]})
+
+                rules[rule].update({"scopeId-str":"any"})
+                rules[rule].update({"sPcTag-str":"any"})
+                rules[rule].update({"dPcTag-str":"any"})
+
                 if zoningrule["actrlRule"]["attributes"]["ctrctName"] != "":
                     try:
-                        aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
-                            ":")
-                        rules[rule].update(
-                            {"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
+                        if ":" in zoningrule["actrlRule"]["attributes"]["ctrctName"]:
+                            aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(":")
+                            rules[rule].update({"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
+                        else:
+                            rules[rule].update({"fltName": zoningrule["actrlRule"]["attributes"]["ctrctName"]})
                     except IndexError:
-                        rules[rule].update(
-                            {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
+                        rules[rule].update({"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})  #To Default filter management
                 else:
-                    rules[rule].update(
-                        {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
-            self.d_contract.update(
-                {"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): rules})
+                    rules[rule].update({"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]}) #To Default filter management
 
-        else:  # Filters matching the tenant/contract
+            self.d_contract.update({"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): rules})
+# Filters matching the tenant/contract
+        else:  
             self.get_contract()
             self.zoningrules = self.get_contracts_info(
                 self.urlzoningrule, filters="wcard(actrlRule.ctrctName,\"{}:{}\")".format(
@@ -819,23 +764,23 @@ class Contracts (EPGs):
                     for t in rule_type:
                         rules[rule].update(
                             {t: zoningrule["actrlRule"]["attributes"][t]})
+
                     if zoningrule["actrlRule"]["attributes"]["ctrctName"] != "":
                         try:
-                            aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(
-                                ":")
-                            rules[rule].update(
-                                {"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
+                            if ":" in zoningrule["actrlRule"]["attributes"]["ctrctName"]:
+                                aux = zoningrule["actrlRule"]["attributes"]["ctrctName"].split(":")
+                                rules[rule].update({"fltName": "uni/tn-{}/brc-{}".format(aux[0], aux[1])})
+                            else:
+                                rules[rule].update({"fltName": zoningrule["actrlRule"]["attributes"]["ctrctName"]})       
                         except IndexError:
-                            rules[rule].update(
-                                {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
+                            rules[rule].update({"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]}) #To Default filter management
                     else:
-                        rules[rule].update(
-                            {"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]})
-                self.d_contract.update(
-                    {"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): rules})
+                        rules[rule].update({"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]}) #To Default filter management
+                    #rules[rule].update({"fltName": zoningrule["actrlRule"]["attributes"]["fltId"]}) #To Default filter management
+
+                self.d_contract.update({"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): rules})
             else:
-                self.d_contract.update(
-                    {"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): {}})
+                self.d_contract.update({"rules/pod-{}/node-{}".format(self.pod_id, self.node_id): {}})
 
 
     def get_contract(self):
@@ -865,7 +810,6 @@ class Contracts (EPGs):
                         subject=c["vzSubj"]["attributes"]["name"]):
                     self.d_contract["Subjects"][c["vzSubj"]["attributes"]["dn"]].append(
                         s["vzRsSubjFiltAtt"]["attributes"]["tDn"])
-
 
     def get_contracts_info(
             self,
@@ -910,20 +854,11 @@ class Contracts (EPGs):
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
-# MAIN args parser
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-# **********************************************************************************
-# Create an envs.py file with (eg):
-# URL="https://sandboxapicdc.cisco.com"
-# USERNAME = "admin"
-# PASS = "ciscopsdt"
-# If there isn't a envs.py you can introduce the values in runtime
-# **********************************************************************************
 
 def getNode1Ver (token) -> bool:
     try:
         response = requests.get(
-            url=APIC_URL + "/api/node/class/topology/pod-1/node-1/firmwareCtrlrRunning.json",
+            url=envs.APIC_URL + "/api/node/class/topology/pod-1/node-1/firmwareCtrlrRunning.json",
             headers={
                 "Cookie": "APIC-cookie=" + token,
                 "Content-obj": "application/json; charset=utf-8",
@@ -938,8 +873,16 @@ def getNode1Ver (token) -> bool:
             "HTTP Request failed, Status Code: {status_code}".format(
                 status_code=response.status_code))
     
-
-
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+# MAIN args parser
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+# **********************************************************************************
+# Create an envs.py file with (eg):
+# URL="https://sandboxapicdc.cisco.com"
+# envs.USERNAME = "admin"
+# envs.PASS = "ciscopsdt"
+# If there isn't a envs.py you can introduce the values in runtime
+# **********************************************************************************
 
 if __name__ == "__main__":
     import argparse
@@ -1005,38 +948,43 @@ the correct renderization of the policy.
         '--logfile',
         action='store_true',
         help='Optional argument: log in a file')
+    parser.add_argument(
+        '-w',
+        '--write',
+        action='store_true',
+        help='Optional argument: Write output to Excel')    
 
     args = parser.parse_args()
 
     if no_envs:
-        APIC_URL = str(input("APIC's URL: "))
-        APIC_URL = "https://{}".format(
-            APIC_URL) if APIC_URL[0:4] != "http" else APIC_URL
-        USERNAME = str(input("Username: "))
-        PASS = getpass("Password: ")
+        envs.APIC_URL = str(input("APIC's URL: "))
+        envs.APIC_URL = "https://{}".format(
+            envs.APIC_URL) if envs.APIC_URL[0:4] != "http" else envs.APIC_URL
+        envs.USERNAME = str(input("Username: "))
+        envs.PASS = getpass("Password: ")
     else:
         try:
-            APIC_URL = envs.URL
+            envs.APIC_URL = envs.APIC_URL
         except AttributeError:
-            APIC_URL = str(input("APIC's URL: "))
-            APIC_URL = "https://{}".format(
-                APIC_URL) if APIC_URL[0:4] != "http" else APIC_URL
+            envs.APIC_URL = str(input("APIC's URL: "))
+            envs.APIC_URL = "https://{}".format(
+                envs.APIC_URL) if envs.APIC_URL[0:4] != "http" else envs.APIC_URL
         try:
-            USERNAME = envs.USERNAME
+            envs.USERNAME = envs.USERNAME
         except AttributeError:
-            USERNAME = str(input("Username: "))
+            envs.USERNAME = str(input("Username: "))
         try:
-            PASS = envs.PASS
+            envs.PASS = envs.PASS
         except AttributeError:
-            PASS = getpass("Password: ")
+            envs.PASS = getpass("Password: ")
 
     _debug = args.debug if args.debug else _debug
     _debugLog = args.logfile
-    print(APIC_URL)
-    print(USERNAME)
+    print(envs.APIC_URL)
+    print(envs.USERNAME)
 
-    TOKEN = apic_login()
-    version = getNode1Ver(TOKEN)
+    envs.TOKEN = apic_login()
+    version = getNode1Ver(envs.TOKEN)
     print ("APIC1 version:",version)
     if version< "4.1":
         print("Unsupported APIC version")
@@ -1045,15 +993,13 @@ the correct renderization of the policy.
     try:
         if args.tenant is None and args.contract is None:
             contract = Contracts(args.pod, args.node)
-            printable(contract.d_contract)
+            printable(contract.d_contract, args.write)
         else:
             contract = Contracts(args.pod,
                                  args.node,
                                  args.tenant,
                                  args.contract)
-            printable(contract.d_contract)
+            printable(contract.d_contract, args.write)
 
-        printt(datetime.now())
-        printt("-" * 250)
     except KeyboardInterrupt:
         printt("KeyboardInterrupt -> Goodbye!")
