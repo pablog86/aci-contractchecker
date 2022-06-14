@@ -46,6 +46,7 @@ For simplicity the script is prepared to read the APIC information from a file i
 URL="https://sandboxapicdc.cisco.com"
 USERNAME = "admin"
 PASS = "ciscopsdt"
+TOKEN = ""
 ```
 
 In the case that the file doesn't exist or a parameter is absent, the script will ask the parameter in runtime.
@@ -187,34 +188,35 @@ id   Source                                Destination                          
 ### Script Help
 ```text
 % python contractchecker.py -h                        
-usage: contract-checker [-h] [-t Tenant Name] [-c Contract Name] [-d debug]
-                        [-l]
-                        podID nodeID
+usage: contract-checker [-h] [-t Tenant Name] [-c Contract Name] [-d debug] [-l] [-w] podID nodeID
 
 --------------------------------------------------------------------------------------------------------------
-This script generates a correlated output from the zoning-rule in the desired leaf switch, it runs locally 
-and using the APIC's APIs. It also has the posibility to filter the tenant/contract construct to validate 
+This script generates a correlated output from the zoning-rule in the desired leaf switch, it runs locally
+and using the APIC's APIs. It also has the posibility to filter the tenant/contract construct to validate
 the correct renderization of the policy.
-    
+
 
 positional arguments:
   podID                                       Pod ID number, eg: 1
   nodeID                                      Node ID number, eg: 101
 
-optional arguments:
+options:
   -h, --help                                  show this help message and exit
   -t Tenant Name, --tenant Tenant Name        Optional argument: Tenant of the contract to filter
   -c Contract Name, --contract Contract Name  Optional argument: contract to filter
-  -d debug, --debug debug                     Optional argument: debug level: 
+  -d debug, --debug debug                     Optional argument: debug level:
                                               -d 1 = Response codes
-                                              -d 2 = Internal objs 
+                                              -d 2 = Internal objs
                                               -d 3 = Verbose
   -l, --logfile                               Optional argument: log in a file
+  -w, --write                                 Optional argument: Write output to Excel
 
 --------------------------------------------------------------------------------------------------------------
 ```
 
 (-l) -> Log file in the same folder with the name ***"debuglog.json"*** :open_file_folder:
+
+(-w) -> Write Excel file in the same folder with the name ***"rules_pod-x_node-y.xlsx"*** :open_file_folder:
 
 (-d 1)	-> debug level 1 (lowest)
 ##### Output example
